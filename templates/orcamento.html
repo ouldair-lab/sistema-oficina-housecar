@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orçamento</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+.sugestoes {
+    background: white;
+    color: black;
+    border-radius: 8px;
+    margin-top: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+.sugestao-item {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+.sugestao-item:hover {
+    background: #f1f1f1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <img src="/static/logo_housecar.png">
+    <h2>ORÇAMENTO 🔧</h2>
+</div>
+
+<form method="POST">
+
+<div class="campo">
+    <label>Nome do Cliente:</label>
+    <input type="text" id="cliente" name="cliente">
+    <div id="lista_clientes" class="sugestoes"></div>
+</div>
+
+<div class="campo">
+    <label>Telefone:</label>
+    <input type="text" id="telefone" name="telefone">
+</div>
+
+<div class="campo">
+    <label>Veículo:</label>
+    <input type="text" id="veiculo" name="veiculo">
+</div>
+
+<div class="campo">
+    <label>Placa:</label>
+    <input type="text" id="placa" name="placa" required>
+</div>
+
+<div class="campo">
+    <label>Mecânico:</label>
+    <select name="mecanico">
+        <option value="">Selecione</option>
+        <option>Victor</option>
+        <option>Erick</option>
+        <option>Max</option>
+    </select>
+</div>
+
+<div class="campo">
+    <label>Problema Relatado pelo Cliente:</label>
+    <textarea name="problema"></textarea>
+</div>
+
+<div class="campo">
+    <label>Diagnóstico Técnico / Solução:</label>
+    <textarea name="diagnostico"></textarea>
+</div>
+
+<div class="secao-topo">
+<h3>Peças</h3>
+<button type="button" onclick="addPeca()">+ Peça</button>
+</div>
+
+<div id="pecas"></div>
+
+<div class="secao-topo">
+<h3>Serviços</h3>
+<button type="button" onclick="addServico()">+ Serviço</button>
+</div>
+
+<div id="servicos"></div>
+
+<h2 id="total_geral">TOTAL GERAL: R$ 0,00</h2>
+
+<button type="submit">💾 Salvar Orçamento</button>
+
+<button type="button" onclick="enviarWhatsApp()">📲 Enviar no WhatsApp</button>
+
+</form>
+
+<br>
+<a href="/" class="btn">← Voltar</a>
+
+<script>
+// AUTOCOMPLETE (igual já estava)
+async function buscarClientes(valor){
+    if(valor.length<2){return;}
+    let res=await fetch(`/buscar_cliente?q=${valor}`);
+    let lista=await res.json();
+
+    let html="";
+    lista.forEach(c=>{
+        html+=`<div class="sugestao-item" onclick='selecionarCliente(${JSON.stringify(c)})'>
+        <strong>${c.nome}</strong><br>${c.veiculo||""} - ${c.placa||""}</div>`;
+    });
+    document.getElementById("lista_clientes").innerHTML=html;
+}
+
+function selecionarCliente(c){
+    cliente.value=c.nome||"";
+    telefone.value=c.telefone||"";
+    veiculo.value=c.veiculo||"";
+    placa.value=c.placa||"";
+    lista_clientes.innerHTML="";
+}
+
+cliente.addEventListener("input",e=>buscarClientes(e.target.value));
+placa.addEventListener("input",e=>buscarClientes(e.target.value));
+
+
+// PEÇAS E SERVIÇOS (seu código mantido)
+function addPeca(nome="", valor="", qtd=1){
+    let div=document.createElement("div");
+    div.classList.add("item");
+
+    div.innerHTML=`
+    <input name="peca_nome" value="${nome}" placeholder="Peça">
+    <input name="peca_valor" value="${valor}" type="number" step="0.01" oninput="calcular()">
+    <input name="peca_qtd" value="${qtd}" type="number" oninput="calcular()">
+    <button type="button" onclick="removerItem(this)">❌</button>
+    <span class="total_item"></span>
+    `;
+    pecas.appendChild(div);
+}
+
+let contadorServico=0;
+
+function addServico(nome="",valor="",qtd=1){
+    let i=contadorServico++;
+    let div=document.createElement("div");
+    div.classList.add("item");
+
+    div.innerHTML=`
+    <input name="servico_nome_${i}" value="${nome}">
+    <input name="servico_valor_${i}" value="${valor}" type="number" step="0.01" oninput="calcular()">
+    <input name="servico_qtd_${i}" value="${qtd}" type="number" oninput="calcular()">
+    <button type="button" onclick="removerItem(this)">❌</button>
+    <span class="total_item"></span>
+    `;
+    servicos.appendChild(div);
+}
+
+function calcular(){
+    let total=0;
+
+    document.querySelectorAll("#pecas .item").forEach(i=>{
+        let v=parseFloat(i.querySelector('[name="peca_valor"]').value)||0;
+        let q=parseInt(i.querySelector('[name="peca_qtd"]').value)||0;
+        let t=v*q;
+        total+=t;
+        i.querySelector(".total_item").innerText="R$ "+t.toFixed(2);
+    });
+
+    document.querySelectorAll("#servicos .item").forEach(i=>{
+        let v=parseFloat(i.querySelector('[name^="servico_valor"]').value)||0;
+        let q=parseInt(i.querySelector('[name^="servico_qtd"]').value)||0;
+        let t=v*q;
+        total+=t;
+        i.querySelector(".total_item").innerText="R$ "+t.toFixed(2);
+    });
+
+    total_geral.innerText="TOTAL: R$ "+total.toFixed(2);
+}
+
+function removerItem(b){b.parentElement.remove();calcular();}
+
+
+// 🚀 WHATSAPP COMPLETO
+function enviarWhatsApp(){
+
+    let tel = telefone.value.replace(/\D/g,"");
+    if(!tel){
+        alert("Informe telefone");
+        return;
+    }
+
+    let clienteNome = cliente.value || "";
+    let veic = veiculo.value || "";
+    let plac = placa.value || "";
+    let problema = document.querySelector('[name="problema"]').value || "";
+    let diagnostico = document.querySelector('[name="diagnostico"]').value || "";
+
+    let msg = `Olá ${clienteNome},\n\n📋 *Orçamento*\n\n`;
+
+    msg += `🚗 Veículo: ${veic}\n`;
+    msg += `🔢 Placa: ${plac}\n\n`;
+
+    // 🔥 PROBLEMA
+    if(problema){
+        msg += `📝 *Problema relatado:*\n${problema}\n\n`;
+    }
+
+    // 🔥 DIAGNÓSTICO
+    if(diagnostico){
+        msg += `🔍 *Diagnóstico técnico:*\n${diagnostico}\n\n`;
+    }
+
+    msg += `🧾 *Itens:*\n`;
+
+    // PEÇAS
+    document.querySelectorAll("#pecas .item").forEach(i=>{
+        let n = i.querySelector('[name="peca_nome"]').value;
+        let v = i.querySelector('[name="peca_valor"]').value;
+        let q = i.querySelector('[name="peca_qtd"]').value;
+
+        if(n){
+            msg += `🔧 ${n} (${q}x) - R$ ${v}\n`;
+        }
+    });
+
+    // SERVIÇOS
+    document.querySelectorAll("#servicos .item").forEach(i=>{
+        let n = i.querySelector('[name^="servico_nome"]').value;
+        let v = i.querySelector('[name^="servico_valor"]').value;
+        let q = i.querySelector('[name^="servico_qtd"]').value;
+
+        if(n){
+            msg += `🛠️ ${n} (${q}x) - R$ ${v}\n`;
+        }
+    });
+
+    msg += `\n💰 ${total_geral.innerText}\n\n`;
+
+    // 🔗 PDF (ajuste seu IP)
+    msg += `📄 Ver orçamento completo:\nhttp://SEU_IP:5000/gerar_pdf\n\n`;
+
+    // ✅ APROVAÇÃO CONTROLADA
+    msg += `👉 Aprovar orçamento:\nhttp://SEU_IP:5000/aprovar_orcamento/ID_AQUI\n`;
+
+    let url = `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+}
+</script>
+
+</body>
+</html>

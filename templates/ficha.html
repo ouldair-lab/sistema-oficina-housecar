@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Orçamento</title>
+
+<style>
+body {
+    font-family: Arial;
+    margin: 40px;
+    color: black;
+    background: white;
+}
+
+/* 🔷 CABEÇALHO */
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header img {
+    width: 220px;
+}
+
+.header h2 {
+    margin-top: 10px;
+}
+
+/* 🔷 CAIXAS */
+.box {
+    border: 1px solid #000;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.linha {
+    border-bottom: 1px solid #000;
+    padding: 5px 0;
+}
+
+.linha:last-child {
+    border-bottom: none;
+}
+
+/* 🔷 TABELA */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    min-width: 500px;
+}
+
+th, td {
+    border: 1px solid #000;
+    padding: 8px;
+}
+
+th {
+    background: #ddd;
+    text-align: center;
+}
+
+td {
+    text-align: left;
+}
+
+/* 🔷 TOTAL */
+.total {
+    border: 1px solid #000;
+    padding: 10px;
+    text-align: right;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 🔷 BOTÕES */
+.acoes {
+    margin-top: 20px;
+}
+
+button {
+    padding: 12px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+/* 📱 MOBILE */
+@media (max-width: 768px) {
+
+    body {
+        margin: 10px;
+    }
+
+    .header img {
+        width: 140px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    .box {
+        padding: 10px;
+    }
+
+    .linha {
+        font-size: 14px;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    button {
+        width: 100%;
+    }
+}
+
+/* 🔷 IMPRESSÃO (NÃO ALTERAR) */
+@media print {
+    button {
+        display: none;
+    }
+
+    body {
+        margin: 20px;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <img src="/static/logo_housecar.png">
+    <h2>NOTA DE SERVIÇO / ORÇAMENTO</h2>
+</div>
+
+<!-- 🔷 DADOS -->
+<div class="box">
+    <div class="linha"><b>Cliente:</b> {{ cliente }}</div>
+    <div class="linha"><b>Veículo:</b> {{ veiculo }}</div>
+    <div class="linha"><b>Placa:</b> {{ placa }}</div>
+    <div class="linha"><b>Mecânico:</b> {{ mecanico }}</div>
+</div>
+
+<!-- 🔷 PROBLEMA -->
+<div class="box">
+    <b>Problema Relatado:</b><br>
+    {{ problema }}
+</div>
+
+<!-- 🔷 DIAGNÓSTICO -->
+<div class="box">
+    <b>Diagnóstico Técnico / Solução:</b><br>
+    {{ diagnostico }}
+</div>
+
+<!-- 🔷 PEÇAS -->
+<h3>Peças</h3>
+<div class="table-container">
+<table>
+<tr>
+    <th>QTDE</th>
+    <th>DESCRIÇÃO</th>
+    <th>UNITÁRIO</th>
+    <th>TOTAL</th>
+</tr>
+
+{% for p in pecas %}
+<tr>
+    <td style="text-align:center;">{{ p.qtd }}</td>
+    <td>{{ p.nome }}</td>
+    <td style="text-align:right;">R$ {{ "%.2f"|format(p.valor) }}</td>
+    <td style="text-align:right;">R$ {{ "%.2f"|format(p.total) }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- 🔷 SERVIÇOS -->
+<h3>Serviços</h3>
+<div class="table-container">
+<table>
+<tr>
+    <th>QTDE</th>
+    <th>DESCRIÇÃO</th>
+    <th>UNITÁRIO</th>
+    <th>TOTAL</th>
+</tr>
+
+{% for s in servicos %}
+<tr>
+    <td style="text-align:center;">{{ s.qtd }}</td>
+    <td>{{ s.nome }}</td>
+    <td style="text-align:right;">R$ {{ "%.2f"|format(s.valor) }}</td>
+    <td style="text-align:right;">R$ {{ "%.2f"|format(s.total) }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- 🔷 TOTAL -->
+<div class="total">
+    TOTAL GERAL: R$ {{ "%.2f"|format(total) }}
+</div>
+
+<!-- 🔷 AÇÕES -->
+<div class="acoes">
+    <button onclick="window.print()">🖨️ Imprimir</button>
+</div>
+
+<form method="POST" action="/os">
+    <input type="hidden" name="cliente" value="{{ cliente }}">
+    <input type="hidden" name="veiculo" value="{{ veiculo }}">
+    <input type="hidden" name="placa" value="{{ placa }}">
+    <input type="hidden" name="mecanico" value="{{ mecanico }}">
+    <input type="hidden" name="problema" value="{{ problema }}">
+    <input type="hidden" name="diagnostico" value="{{ diagnostico }}">
+    <input type="hidden" name="total" value="{{ total }}">
+
+    {% for p in pecas %}
+    <input type="hidden" name="peca_nome" value="{{ p.nome }}">
+    <input type="hidden" name="peca_valor" value="{{ p.valor }}">
+    <input type="hidden" name="peca_qtd" value="{{ p.qtd }}">
+    {% endfor %}
+
+    {% for s in servicos %}
+    <input type="hidden" name="servico_nome_{{ loop.index0 }}" value="{{ s.nome }}">
+    <input type="hidden" name="servico_valor_{{ loop.index0 }}" value="{{ s.valor }}">
+    <input type="hidden" name="servico_qtd_{{ loop.index0 }}" value="{{ s.qtd }}">
+    <input type="hidden" name="servico_comissao_{{ loop.index0 }}" value="{{ 1 if s.comissao else '' }}">
+    {% endfor %}
+    
+    <button type="submit">✅ Aprovar e converter em OS</button>
+</form>
+
+</body>
+</html>

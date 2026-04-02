@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Clientes</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+.card {
+    background: #1e3a8a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <h2>👤 Clientes</h2>
+</div>
+
+<a href="/" class="btn">⬅ Voltar</a>
+
+<!-- LISTA -->
+{% for c in clientes %}
+<div class="card">
+
+    <div><strong>NOME DO CLIENTE:</strong> {{ c[1] }}</div>
+
+    <div><strong>TELEFONE:</strong> {{ c[2] }}</div>
+
+    <div><strong>CPF/CNPJ:</strong> {{ c[3] or '-' }}</div>
+
+    <div><strong>VEÍCULO:</strong> {{ c[4] or '-' }}</div>
+
+    <div><strong>PLACA:</strong> {{ c[5] or '-' }}</div>
+
+</div>
+{% endfor %}
+
+<!-- FORM -->
+<h3>Novo Cliente</h3>
+
+<form method="POST">
+
+    <input name="nome" placeholder="Nome" required>
+
+    <input name="telefone" placeholder="Telefone (WhatsApp)" required>
+
+    <input name="documento" placeholder="CPF ou CNPJ">
+
+    <input name="veiculo" placeholder="Veículo">
+
+    <input name="placa" placeholder="Placa">
+
+    <button type="submit">Salvar</button>
+
+</form>
+
+</body>
+</html>

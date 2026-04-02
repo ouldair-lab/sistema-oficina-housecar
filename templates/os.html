@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordem de Serviço</title>
+
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="header">
+    <img src="/static/logo_housecar.png">
+    <h2>ORDEM DE SERVIÇO 🔧</h2>
+</div>
+
+<form method="POST" action="/atualizar_os">
+
+<input type="hidden" name="ordem_id" value="{{ id }}">
+
+<div class="campo">
+    <label>Nome do Cliente:</label>
+    <input type="text" name="cliente" value="{{ cliente }}">
+</div>
+
+<div class="campo">
+    <label>Veículo:</label>
+    <input type="text" name="veiculo" value="{{ veiculo }}">
+</div>
+
+<div class="campo">
+    <label>Placa:</label>
+    <input type="text" name="placa" value="{{ placa }}">
+</div>
+
+<div class="campo">
+    <label>Data de Entrada:</label>
+    <input type="date" name="data_entrada" value="{{ data_entrada }}">
+</div>
+
+<div class="campo">
+    <label>Data de Saída:</label>
+    <input type="date" name="data_saida" value="{{ data_saida }}">
+</div>
+
+<div class="campo">
+    <label>Mecânico:</label>
+    <select name="mecanico">
+        <option value="Victor" {% if mecanico == "Victor" %}selected{% endif %}>Victor</option>
+        <option value="Erick" {% if mecanico == "Erick" %}selected{% endif %}>Erick</option>
+        <option value="Max" {% if mecanico == "Max" %}selected{% endif %}>Max</option>
+    </select>
+</div>
+
+<div class="campo">
+    <label>Problema Relatado pelo Cliente:</label>
+    <textarea name="problema">{{ problema }}</textarea>
+</div>
+
+<div class="campo">
+    <label>Diagnóstico Técnico / Solução:</label>
+    <textarea name="diagnostico">{{ diagnostico }}</textarea>
+</div>
+
+<div class="secao-topo">
+    <h3>Peças</h3>
+    <button type="button" onclick="addPeca()">+ Peça</button>
+</div>
+
+<div id="pecas"></div>
+
+<div class="secao-topo">
+    <h3>Serviços</h3>
+    <button type="button" onclick="addServico()">+ Serviço</button>
+</div>
+
+<div id="servicos"></div>
+
+<h2 id="total_geral">TOTAL: R$ {{ total }}</h2>
+
+<div class="campo">
+    <label>Status:</label>
+    <select name="status">
+        <option value="EM ANDAMENTO" {% if status == "EM ANDAMENTO" %}selected{% endif %}>EM ANDAMENTO</option>
+        <option value="AGUARDANDO PEÇAS" {% if status == "AGUARDANDO PEÇAS" %}selected{% endif %}>AGUARDANDO PEÇAS</option>
+        <option value="PENDENTE" {% if status == "PENDENTE" %}selected{% endif %}>PENDENTE</option>
+        <option value="FINALIZADA" {% if status == "FINALIZADA" %}selected{% endif %}>FINALIZADA</option>
+    </select>
+</div>
+
+<div style="display:flex; gap:10px; margin-top:15px; justify-content:flex-start; flex-wrap:wrap;">
+
+    <button type="submit">💾 Atualizar OS</button>
+
+    {% if status == "FINALIZADA" %}
+    <a href="/gerar_nota/{{ id }}" class="btn" target="_blank">📄 Abrir Nota</a>
+    {% endif %}
+
+    <a href="/os_lista" class="btn">⬅ Voltar</a>
+
+</div>
+
+</form>
+
+<script>
+function addPeca(nome="", valor="", qtd=1) {
+    let div = document.createElement("div");
+    div.classList.add("item");
+
+    div.innerHTML = `
+        <div class="linha-item">
+            <input type="text" name="peca_nome" value="${nome}" placeholder="Nome da peça">
+            <input type="number" name="peca_valor" value="${valor}" step="0.01" oninput="calcular()">
+            <input type="number" name="peca_qtd" value="${qtd}" oninput="calcular()">
+            <button type="button" onclick="removerItem(this)">❌</button>
+        </div>
+
+        <span class="total_item">Total: R$ 0</span>
+    `;
+
+    document.getElementById("pecas").appendChild(div);
+}
+
+let contadorServico = 0;
+
+function addServico(nome="", valor="", qtd=1, comissao=true) {
+    let index = contadorServico++;
+
+    let div = document.createElement("div");
+    div.classList.add("item");
+
+    div.innerHTML = `
+        <div class="linha-item">
+            <input type="text" name="servico_nome_${index}" value="${nome}" placeholder="Serviço">
+
+            <input type="number" name="servico_valor_${index}" value="${valor}" step="0.01" oninput="calcular()">
+
+            <input type="number" name="servico_qtd_${index}" value="${qtd}" oninput="calcular()">
+
+            <label>
+                <input type="checkbox" name="servico_comissao_${index}" ${comissao ? "checked" : ""}>
+                Comissão
+            </label>
+
+            <button type="button" onclick="removerItem(this)">❌</button>
+        </div>
+
+        <span class="valor_comissao">Comissão: R$ 0,00</span>
+        <span class="total_item">Total: R$ 0</span>
+    `;
+
+    document.getElementById("servicos").appendChild(div);
+}
+
+function calcular() {
+    let totalGeral = 0;
+
+    document.querySelectorAll("#pecas .item").forEach(item => {
+        let valor = parseFloat(item.querySelector('[name="peca_valor"]').value) || 0;
+        let qtd = parseInt(item.querySelector('[name="peca_qtd"]').value) || 0;
+
+        let total = valor * qtd;
+
+        item.querySelector(".total_item").innerText =
+            "Total: R$ " + total.toFixed(2).replace(".", ",");
+
+        totalGeral += total;
+    });
+
+    document.querySelectorAll("#servicos .item").forEach(item => {
+        let valor = parseFloat(item.querySelector('[name^="servico_valor_"]').value) || 0;
+        let qtd = parseInt(item.querySelector('[name^="servico_qtd_"]').value) || 0;
+        let check = item.querySelector('input[type="checkbox"]');
+
+        let total = valor * qtd;
+
+        item.querySelector(".total_item").innerText =
+            "Total: R$ " + total.toFixed(2).replace(".", ",");
+
+        let comissao = 0;
+
+        if (check.checked) {
+            comissao = total <= 50 ? total * 0.7 : total * 0.4;
+        }
+
+        item.querySelector(".valor_comissao").innerText =
+            "Comissão: R$ " + comissao.toFixed(2).replace(".", ",");
+
+        totalGeral += total;
+    });
+
+    document.getElementById("total_geral").innerText =
+        "TOTAL: R$ " + totalGeral.toFixed(2).replace(".", ",");
+}
+
+function removerItem(botao) {
+    botao.parentElement.remove();
+    calcular();
+}
+
+function reabrir() {
+    document.querySelector('[name="status"]').value = "EM ANDAMENTO";
+}
+</script>
+
+<script>
+window.onload = function() {
+    let pecas = JSON.parse('{{ pecas | tojson | safe }}');
+    pecas.forEach(p => addPeca(p[0], p[1], p[2]));
+
+    let servicos = JSON.parse('{{ servicos | tojson | safe }}');
+    servicos.forEach(s => addServico(s[0], s[1], s[2], s[3]));
+
+    calcular();
+};
+</script>
+
+</body>
+</html>

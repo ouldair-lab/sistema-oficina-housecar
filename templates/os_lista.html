@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordens de Serviço</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+/* 🔷 Ajustes específicos da tabela */
+.tabela-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #1e3a8a;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+/* 🔷 Busca */
+.busca {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.busca input {
+    flex: 1;
+}
+
+/* 🔷 Botão pequeno */
+.btn-acao {
+    background: #16a34a;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-acao:hover {
+    background: #15803d;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <h2>📋 Ordens de Serviço / Orçamentos</h2>
+</div>
+
+<form method="GET" action="/os_lista" class="busca">
+    <input type="text" name="busca" placeholder="Buscar por cliente ou placa" value="{{ busca }}">
+    <button type="submit">🔍 Buscar</button>
+</form>
+
+<div class="tabela-container">
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Veículo</th>
+        <th>Placa</th>
+        <th>Total</th>
+        <th>Tipo</th>
+        <th>Status</th>
+        <th>Comissão</th>
+        <th>Ações</th>
+    </tr>
+
+    {% for o in ordens %}
+<tr>
+    <td>{{ o[0] }}</td>
+    <td>{{ o[1] }}</td>
+    <td>{{ o[2] }}</td>
+    <td>{{ o[3] }}</td>
+    <td>R$ {{ "%.2f"|format(o[4]) }}</td>
+    <td>{{ o[5] }}</td>
+
+    <td>
+        <span class="status 
+        {% if o[6] == 'FINALIZADA' %}finalizada
+        {% elif o[6] == 'EM ANDAMENTO' %}andamento
+        {% elif o[6] == 'PENDENTE' %}pendente
+        {% elif o[6] == 'AGUARDANDO PEÇAS' %}aguardando
+        {% elif o[6] == 'APROVADO' %}aprovado
+        {% endif %}
+        ">
+            {{ o[6] }}
+        </span>
+    </td>
+
+    <td>R$ {{ "%.2f"|format(o[7] or 0) }}</td>
+    <td>
+        <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>
+    </td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<div class="lista-os">
+
+{% for o in ordens %}
+<div class="card-os">
+
+    <div class="linha-topo">
+        <strong>#{{ o[0] }}</strong>
+        <span class="status 
+        {% if o[6] == 'FINALIZADA' %}finalizada
+        {% elif o[6] == 'EM ANDAMENTO' %}andamento
+        {% elif o[6] == 'PENDENTE' %}pendente
+        {% elif o[6] == 'AGUARDANDO PEÇAS' %}aguardando
+        {% endif %}
+        ">
+            {{ o[6] }}
+        </span>
+    </div>
+
+    <div><strong>Cliente:</strong> {{ o[1] }}</div>
+    <div><strong>Veículo:</strong> {{ o[2] }}</div>
+    <div><strong>Placa:</strong> {{ o[3] }}</div>
+
+    <div class="linha-info">
+        <span><strong>Total:</strong> R$ {{ "%.2f"|format(o[4]) }}</span>
+        <span><strong>Comissão:</strong> R$ {{ "%.2f"|format(o[7] or 0) }}</span>
+    </div>
+
+    <div><strong>Tipo:</strong> {{ o[5] }}</div>
+
+    <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>
+
+</div>
+{% endfor %}
+
+</div>
+
+<br>
+<a href="/" class="btn">⬅ Voltar</a>
+
+</body>
+</html>

@@ -1,0 +1,282 @@
+/* 🔷 BASE GERAL */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b3d91;
+    color: white;
+    padding: 20px;
+}
+
+/* 🔷 CABEÇALHO */
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header img {
+    width: 220px;
+}
+
+/* 🔷 FORMULÁRIOS */
+.campo {
+    margin-bottom: 15px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.campo input,
+.campo textarea,
+.campo select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    background: #ffffff;
+    color: #000;
+}
+
+/* 🔷 BOTÕES */
+button {
+    background: #1e3a8a;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: #1e40af;
+}
+
+/* 🔷 BOTÃO VERDE */
+.btn {
+    background: #16a34a;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background: #15803d;
+}
+
+/* 🔷 CARDS */
+.item,
+.card-os,
+.card-financeiro {
+    background: #1e3a8a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+/* 🔷 TÍTULOS */
+h2, h3 {
+    text-align: center;
+}
+
+/* 🔷 TOTAL */
+#total_geral {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 🔷 TABELAS */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #1e3a8a;
+    color: white;
+}
+
+/* 🔷 LINHA DOS ITENS */
+.linha-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.linha-item input[type="text"] { flex: 3; }
+.linha-item input[type="number"] { flex: 1; }
+
+.linha-item button {
+    width: auto;
+    padding: 6px 10px;
+}
+
+.linha-item label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+}
+
+/* 🔷 TOPO DAS SEÇÕES */
+.secao-topo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.secao-topo h3 { margin: 0; }
+
+.secao-topo button {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+/* 🔷 LISTA OS */
+.lista-os { display: none; }
+
+.card-os div { margin-bottom: 5px; }
+
+.linha-topo {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.linha-info {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* 🔷 STATUS */
+.status {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+
+.status.finalizada { background: #16a34a; }
+.status.andamento { background: #2563eb; }
+.status.pendente { background: #eab308; color: black; }
+.status.aguardando { background: #f97316; }
+
+/* 🔷 RECEITAS */
+.total-receitas {
+    background: #16a34a;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.resumo-formas {
+    background: #1e3a8a;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.resumo-formas div {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+/* 🔷 FINANCEIRO (INDEX) */
+.card-financeiro {
+    background: #0f2f6b;
+    margin: 20px;
+}
+
+.card-financeiro .saldo {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #22c55e;
+}
+
+.linha-financeira {
+    font-size: 13px;
+    opacity: 0.9;
+    text-align: left;
+}
+
+/* 📱 MOBILE */
+@media (max-width: 768px) {
+
+    body { padding: 10px; }
+
+    .header img { width: 140px; }
+
+    input, textarea, select {
+        font-size: 16px !important;
+        padding: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    button {
+        font-size: 16px;
+        padding: 14px;
+    }
+
+    .linha-item {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .linha-item input {
+        flex: none !important;
+        width: 100% !important;
+    }
+
+    .linha-item button { width: 100%; }
+
+    .item { padding: 12px; }
+
+    #total_geral { font-size: 20px; }
+
+    .tabela-container { display: none; }
+    .lista-os { display: block; }
+
+    .busca { flex-direction: column; }
+    .busca button { width: 100%; }
+}
+
+.card div {
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.card strong {
+    color: #93c5fd; /* azul claro elegante */
+}
+
+.status.aprovado {
+    background: #22c55e;
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Car</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        /* 🔷 Ajustes específicos SOMENTE desta tela */
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .btn-menu {
+            background: #1b263b;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 18px;
+            text-decoration: none;
+            color: white;
+            text-align: center;
+            display: block;
+        }
+
+        .btn-menu:hover {
+            background: #415a77;
+        }
+
+        /* 🔷 CARD FINANCEIRO DISCRETO */
+        .card-financeiro {
+            background: #0f2f6b;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 20px;
+        }
+
+        .card-financeiro .saldo {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #22c55e;
+        }
+
+        .linha-financeira {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <img src="/static/logo_housecar.png" alt="House Car Logo">
+    </div>
+
+    <div class="container">
+        <a href="/orcamento" class="btn-menu">Orçamento</a>
+        <a href="/os_lista" class="btn-menu">Ordens de Serviço</a>
+        <a href="/receitas" class="btn-menu">Receitas</a>
+        <a href="/despesas" class="btn-menu">Despesas</a>
+        <a href="/clientes" class="btn-menu">Clientes</a>
+        <a href="/estoque" class="btn-menu">Estoque</a>
+        <a href="/relatorios" class="btn-menu">Relatórios</a>
+    </div>
+
+    <!-- 🔥 CARD FINANCEIRO AGORA NO LUGAR CERTO -->
+    <div class="card-financeiro">
+
+        <div class="saldo">
+            💰 Saldo: R$ {{ "%.2f"|format(saldo) }}
+        </div>
+
+        <div class="linha-financeira">
+             📈 Receitas: R$ {{ "%.2f"|format(receitas) }}
+        </div>
+
+        <div class="linha-financeira">
+            📉 Despesas: R$ {{ "%.2f"|format(despesas) }}
+        </div>
+
+    </div>
+
+</body>
+</html>
