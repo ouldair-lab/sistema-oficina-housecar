@@ -35,20 +35,24 @@
     font-size: 16px;
 }
 
-/* BOTÃO FIXO */
-.btn-flutuante {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #16a34a;
-    color: white;
-    border-radius: 50%;
-    width: 55px;
-    height: 55px;
-    font-size: 28px;
-    text-align: center;
-    line-height: 55px;
-    text-decoration: none;
+.topo-padrao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.btn-add {
+    background: #06d6a0;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-add:hover {
+    background: #05b386;
 }
 
 /* MODAL */
@@ -63,37 +67,32 @@
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
 }
-
-.modal input, .modal select {
-    margin-top: 10px;
-}
 </style>
 
 </head>
 
-<div class="header">
-    <a href="/">
-        <img src="/static/logo_housecar.png" style="cursor:pointer;">
-    </a>
-    <h2>💰 Receitas</h2>
-</div>
+<body>
 
+<!-- HEADER PADRÃO -->
+{% include "_header.html" %}
+
+<!-- TOTAL -->
 <div class="total-receitas">
     💰 Total: R$ {{ "%.2f"|format(total) }}
 </div>
 
 <div class="resumo-formas">
-
     <div>📲 PIX: R$ {{ "%.2f"|format(total_pix) }}</div>
     <div>💵 Dinheiro: R$ {{ "%.2f"|format(total_dinheiro) }}</div>
     <div>💳 Débito: R$ {{ "%.2f"|format(total_debito) }}</div>
     <div>💳 Crédito: R$ {{ "%.2f"|format(total_credito) }}</div>
-
 </div>
-<br>
-<a href="/" class="btn">⬅ Voltar</a>
 
-<body>
+<!-- TOPO PADRÃO -->
+<div class="topo-padrao">
+    <h3>Lista de Receitas</h3>
+    <button class="btn-add" onclick="abrirModal()">+ Receita</button>
+</div>
 
 <!-- LISTA -->
 <div class="lista-receitas">
@@ -110,15 +109,13 @@
     <div><b>Status:</b> {{ r[7] }}</div>
     <div style="font-size:12px;">{{ r[8] }}</div>
 
-    <!-- BOTÃO EDITAR -->
     <button 
     type="button"
     data-id="{{ r[0] }}"
     data-valor="{{ r[5] }}"
     data-forma="{{ r[6] }}"
     data-status="{{ r[7] }}"
-    onclick="abrirEdicao(this)"
-    >
+    onclick="abrirEdicao(this)">
     ✏️ Editar
     </button>
 
@@ -133,9 +130,7 @@
     padding:8px;
     border-radius:6px;
     margin-top:5px;
-    text-decoration:none;
-    "
-    >
+    text-decoration:none;">
     🗑️ Excluir
     </a>
 
@@ -144,10 +139,7 @@
 
 </div>
 
-<!-- BOTÃO + -->
-<a href="#" class="btn-flutuante" onclick="abrirModal()">+</a>
-
-<!-- MODAL -->
+<!-- MODAL NOVA RECEITA -->
 <div class="modal" id="modal">
 
 <form method="POST">
@@ -155,7 +147,6 @@
     <h3>Nova Receita</h3>
 
     <input type="text" name="descricao" placeholder="Descrição" required>
-
     <input type="number" step="0.01" name="valor" placeholder="Valor" required>
 
     <select name="forma">
@@ -177,6 +168,7 @@
 
 </div>
 
+<!-- MODAL EDIT -->
 <div class="modal" id="modalEdit">
 
 <form method="POST" id="formEdit">
@@ -185,7 +177,7 @@
 
     <input type="hidden" name="id" id="edit_id">
 
-    <input type="number" step="0.01" name="valor" id="edit_valor" placeholder="Valor">
+    <input type="number" step="0.01" name="valor" id="edit_valor">
 
     <select name="forma" id="edit_forma">
         <option value="PIX">PIX</option>
@@ -214,9 +206,7 @@ function abrirModal() {
 function fecharModal() {
     document.getElementById("modal").style.display = "none";
 }
-</script>
 
-<script>
 function abrirEdicao(botao) {
     document.getElementById("modalEdit").style.display = "block";
 
@@ -231,9 +221,7 @@ function abrirEdicao(botao) {
 function fecharEdit() {
     document.getElementById("modalEdit").style.display = "none";
 }
-</script>
 
-<script>
 function confirmarExclusao() {
     return confirm("Tem certeza que deseja excluir esta receita?");
 }

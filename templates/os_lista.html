@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="/static/style.css">
 
 <style>
-/* 🔷 Ajustes específicos da tabela */
 .tabela-container {
     overflow-x: auto;
 }
@@ -36,7 +35,6 @@ tr:nth-child(even) {
     background: #f2f2f2;
 }
 
-/* 🔷 Busca */
 .busca {
     display: flex;
     gap: 10px;
@@ -47,7 +45,6 @@ tr:nth-child(even) {
     flex: 1;
 }
 
-/* 🔷 Botão pequeno */
 .btn-acao {
     background: #16a34a;
     padding: 6px 10px;
@@ -60,24 +57,48 @@ tr:nth-child(even) {
 .btn-acao:hover {
     background: #15803d;
 }
+
+.topo-padrao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.btn-add {
+    background: #06d6a0;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-add:hover {
+    background: #05b386;
+}
 </style>
 
 </head>
 
 <body>
 
-<div class="header">
-    <a href="/">
-        <img src="/static/logo_housecar.png" style="cursor:pointer;">
-    </a>
-    <h2>📋 Ordens de Serviço / Orçamentos</h2>
+<!-- HEADER PADRÃO -->
+{% include "_header.html" %}
+
+<!-- TOPO PADRÃO -->
+<div class="topo-padrao">
+    <h3>Ordens de Serviço / Orçamentos</h3>
+    <a href="/abrir_os/0" class="btn-add">+ Nova OS</a>
 </div>
 
+<!-- BUSCA -->
 <form method="GET" action="/os_lista" class="busca">
     <input type="text" name="busca" placeholder="Buscar por cliente ou placa" value="{{ busca }}">
     <button type="submit">🔍 Buscar</button>
 </form>
 
+<!-- TABELA (DESKTOP) -->
 <div class="tabela-container">
 <table>
     <tr>
@@ -115,6 +136,7 @@ tr:nth-child(even) {
     </td>
 
     <td>R$ {{ "%.2f"|format(o[7] or 0) }}</td>
+
     <td>
         <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>
     </td>
@@ -123,6 +145,7 @@ tr:nth-child(even) {
 </table>
 </div>
 
+<!-- CARDS (MOBILE) -->
 <div class="lista-os">
 
 {% for o in ordens %}
@@ -135,6 +158,7 @@ tr:nth-child(even) {
         {% elif o[6] == 'EM ANDAMENTO' %}andamento
         {% elif o[6] == 'PENDENTE' %}pendente
         {% elif o[6] == 'AGUARDANDO PEÇAS' %}aguardando
+        {% elif o[6] == 'APROVADO' %}aprovado
         {% endif %}
         ">
             {{ o[6] }}
@@ -158,9 +182,6 @@ tr:nth-child(even) {
 {% endfor %}
 
 </div>
-
-<br>
-<a href="/" class="btn">⬅ Voltar</a>
 
 </body>
 </html>

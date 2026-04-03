@@ -24,100 +24,137 @@
 .sugestao-item:hover {
     background: #f1f1f1;
 }
+
+.secao {
+    background: #1e3a8a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.secao-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-add {
+    background: #06d6a0;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.botoes {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:15px;
+}
+
+.btn-principal {
+    background:#16a34a;
+    color:white;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+}
+
+.btn-whats {
+    background:#25D366;
+    color:white;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">
-    <a href="/">
-        <img src="/static/logo_housecar.png" style="cursor:pointer;">
-    </a>
-    <h2>ORÇAMENTO 🔧</h2>
-</div>
-
-<div style="position:absolute; right:20px; top:20px; display:flex; gap:10px;">
-    
-    <a href="/" class="btn-menu" style="padding:8px 12px;">
-        🏠 Início
-    </a>
-
-    <a href="/logout" class="btn-menu" style="padding:8px 12px;">
-        🔒 Sair
-    </a>
-
-</div>
+<!-- HEADER PADRÃO -->
+{% include "_header.html" %}
 
 <form method="POST">
 
-<div class="campo">
-    <label>Nome do Cliente:</label>
-    <input type="text" id="cliente" name="cliente">
-    <div id="lista_clientes" class="sugestoes"></div>
+<div class="secao">
+    <h3>Cliente</h3>
+
+    <div class="campo">
+        <label>Nome:</label>
+        <input type="text" id="cliente" name="cliente">
+        <div id="lista_clientes" class="sugestoes"></div>
+    </div>
+
+    <div class="campo">
+        <label>Telefone:</label>
+        <input type="text" id="telefone" name="telefone">
+    </div>
+
+    <div class="campo">
+        <label>Veículo:</label>
+        <input type="text" id="veiculo" name="veiculo">
+    </div>
+
+    <div class="campo">
+        <label>Placa:</label>
+        <input type="text" id="placa" name="placa" required>
+    </div>
 </div>
 
-<div class="campo">
-    <label>Telefone:</label>
-    <input type="text" id="telefone" name="telefone">
+<div class="secao">
+    <h3>Diagnóstico</h3>
+
+    <div class="campo">
+        <label>Problema:</label>
+        <textarea name="problema"></textarea>
+    </div>
+
+    <div class="campo">
+        <label>Solução:</label>
+        <textarea name="diagnostico"></textarea>
+    </div>
+
+    <div class="campo">
+        <label>Mecânico:</label>
+        <select name="mecanico">
+            <option value="">Selecione</option>
+            <option>Victor</option>
+            <option>Erick</option>
+            <option>Max</option>
+        </select>
+    </div>
 </div>
 
-<div class="campo">
-    <label>Veículo:</label>
-    <input type="text" id="veiculo" name="veiculo">
+<div class="secao">
+    <div class="secao-topo">
+        <h3>Peças</h3>
+        <button type="button" class="btn-add" onclick="addPeca()">+ Peça</button>
+    </div>
+    <div id="pecas"></div>
 </div>
 
-<div class="campo">
-    <label>Placa:</label>
-    <input type="text" id="placa" name="placa" required>
+<div class="secao">
+    <div class="secao-topo">
+        <h3>Serviços</h3>
+        <button type="button" class="btn-add" onclick="addServico()">+ Serviço</button>
+    </div>
+    <div id="servicos"></div>
 </div>
 
-<div class="campo">
-    <label>Mecânico:</label>
-    <select name="mecanico">
-        <option value="">Selecione</option>
-        <option>Victor</option>
-        <option>Erick</option>
-        <option>Max</option>
-    </select>
+<h2 id="total_geral">TOTAL: R$ 0,00</h2>
+
+<div class="botoes">
+    <button type="submit" class="btn-principal">💾 Salvar Orçamento</button>
+    <button type="button" onclick="enviarWhatsApp()" class="btn-whats">📲 Enviar WhatsApp</button>
 </div>
-
-<div class="campo">
-    <label>Problema Relatado pelo Cliente:</label>
-    <textarea name="problema"></textarea>
-</div>
-
-<div class="campo">
-    <label>Diagnóstico Técnico / Solução:</label>
-    <textarea name="diagnostico"></textarea>
-</div>
-
-<div class="secao-topo">
-<h3>Peças</h3>
-<button type="button" onclick="addPeca()">+ Peça</button>
-</div>
-
-<div id="pecas"></div>
-
-<div class="secao-topo">
-<h3>Serviços</h3>
-<button type="button" onclick="addServico()">+ Serviço</button>
-</div>
-
-<div id="servicos"></div>
-
-<h2 id="total_geral">TOTAL GERAL: R$ 0,00</h2>
-
-<button type="submit">💾 Salvar Orçamento</button>
-
-<button type="button" onclick="enviarWhatsApp()">📲 Enviar no WhatsApp</button>
 
 </form>
 
-<br>
-<a href="/" class="btn">← Voltar</a>
-
 <script>
-// AUTOCOMPLETE (igual já estava)
+// (autocomplete igual)
 async function buscarClientes(valor){
     if(valor.length<2){return;}
     let res=await fetch(`/buscar_cliente?q=${valor}`);
@@ -128,7 +165,7 @@ async function buscarClientes(valor){
         html+=`<div class="sugestao-item" onclick='selecionarCliente(${JSON.stringify(c)})'>
         <strong>${c.nome}</strong><br>${c.veiculo||""} - ${c.placa||""}</div>`;
     });
-    document.getElementById("lista_clientes").innerHTML=html;
+    lista_clientes.innerHTML=html;
 }
 
 function selecionarCliente(c){
@@ -142,14 +179,12 @@ function selecionarCliente(c){
 cliente.addEventListener("input",e=>buscarClientes(e.target.value));
 placa.addEventListener("input",e=>buscarClientes(e.target.value));
 
-
-// PEÇAS E SERVIÇOS (seu código mantido)
-function addPeca(nome="", valor="", qtd=1){
+function addPeca(nome="",valor="",qtd=1){
     let div=document.createElement("div");
     div.classList.add("item");
 
     div.innerHTML=`
-    <input name="peca_nome" value="${nome}" placeholder="Peça">
+    <input name="peca_nome" value="${nome}">
     <input name="peca_valor" value="${valor}" type="number" step="0.01" oninput="calcular()">
     <input name="peca_qtd" value="${qtd}" type="number" oninput="calcular()">
     <button type="button" onclick="removerItem(this)">❌</button>
@@ -199,71 +234,22 @@ function calcular(){
 
 function removerItem(b){b.parentElement.remove();calcular();}
 
-
-// 🚀 WHATSAPP COMPLETO
+// 🔥 WHATSAPP COM DOMÍNIO
 function enviarWhatsApp(){
 
     let tel = telefone.value.replace(/\D/g,"");
-    if(!tel){
-        alert("Informe telefone");
-        return;
-    }
+    if(!tel){ alert("Informe telefone"); return; }
 
-    let clienteNome = cliente.value || "";
-    let veic = veiculo.value || "";
-    let plac = placa.value || "";
-    let problema = document.querySelector('[name="problema"]').value || "";
-    let diagnostico = document.querySelector('[name="diagnostico"]').value || "";
+    let msg = `Orçamento House Car\n\n`;
+    msg += `Cliente: ${cliente.value}\n`;
+    msg += `Veículo: ${veiculo.value} - ${placa.value}\n\n`;
 
-    let msg = `Olá ${clienteNome},\n\n📋 *Orçamento*\n\n`;
+    msg += `${total_geral.innerText}\n\n`;
 
-    msg += `🚗 Veículo: ${veic}\n`;
-    msg += `🔢 Placa: ${plac}\n\n`;
-
-    // 🔥 PROBLEMA
-    if(problema){
-        msg += `📝 *Problema relatado:*\n${problema}\n\n`;
-    }
-
-    // 🔥 DIAGNÓSTICO
-    if(diagnostico){
-        msg += `🔍 *Diagnóstico técnico:*\n${diagnostico}\n\n`;
-    }
-
-    msg += `🧾 *Itens:*\n`;
-
-    // PEÇAS
-    document.querySelectorAll("#pecas .item").forEach(i=>{
-        let n = i.querySelector('[name="peca_nome"]').value;
-        let v = i.querySelector('[name="peca_valor"]').value;
-        let q = i.querySelector('[name="peca_qtd"]').value;
-
-        if(n){
-            msg += `🔧 ${n} (${q}x) - R$ ${v}\n`;
-        }
-    });
-
-    // SERVIÇOS
-    document.querySelectorAll("#servicos .item").forEach(i=>{
-        let n = i.querySelector('[name^="servico_nome"]').value;
-        let v = i.querySelector('[name^="servico_valor"]').value;
-        let q = i.querySelector('[name^="servico_qtd"]').value;
-
-        if(n){
-            msg += `🛠️ ${n} (${q}x) - R$ ${v}\n`;
-        }
-    });
-
-    msg += `\n💰 ${total_geral.innerText}\n\n`;
-
-    // 🔗 PDF (ajuste seu IP)
-    msg += `📄 Ver orçamento completo:\nhttp://SEU_IP:5000/gerar_pdf\n\n`;
-
-    // ✅ APROVAÇÃO CONTROLADA
-    msg += `👉 Aprovar orçamento:\nhttp://SEU_IP:5000/aprovar_orcamento/ID_AQUI\n`;
+    msg += `👉 Aprovar:\nhttps://housecaroficinamecanica.com.br/aprovar_orcamento/ID_AQUI`;
 
     let url = `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank");
+    window.open(url,"_blank");
 }
 </script>
 

@@ -8,13 +8,12 @@
     <link rel="stylesheet" href="/static/style.css">
 
     <style>
-        /* 🔷 Ajustes específicos SOMENTE desta tela */
         .container {
             display: flex;
             flex-direction: column;
             gap: 15px;
             padding: 20px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .btn-menu {
@@ -32,65 +31,80 @@
             background: #415a77;
         }
 
-        /* 🔷 CARD FINANCEIRO DISCRETO */
         .card-financeiro {
             background: #0f2f6b;
-            padding: 12px;
+            padding: 15px;
             border-radius: 12px;
             margin: 20px;
         }
 
-        .card-financeiro .saldo {
+        .saldo {
             text-align: center;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #22c55e;
         }
 
         .linha-financeira {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            opacity: 0.9;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .titulo-secao {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 16px;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
-    <a href="/">
-        <img src="/static/logo_housecar.png" style="cursor:pointer;">
-    </a>
+<!-- HEADER PADRÃO -->
+{% include "_header.html" %}
+
+<div class="titulo-secao">📊 Painel da Oficina</div>
+
+<div class="container">
+
+    <a href="/orcamento" class="btn-menu">📄 Orçamento</a>
+
+    <a href="/os_lista" class="btn-menu">📋 Ordens de Serviço</a>
+
+    <a href="/receitas" class="btn-menu">💰 Receitas</a>
+
+    <a href="/despesas" class="btn-menu">💸 Despesas</a>
+
+    <a href="/clientes" class="btn-menu">👤 Clientes</a>
+
+    <a href="/estoque" class="btn-menu">📦 Estoque</a>
+
+    <a href="/relatorios" class="btn-menu">📊 Relatórios</a>
+
+</div>
+
+<!-- CARD FINANCEIRO -->
+<div class="card-financeiro">
+
+    <div class="saldo">
+        💰 Saldo: R$ {{ "%.2f"|format(saldo) }}
     </div>
 
-    <div class="container">
-        <a href="/orcamento" class="btn-menu">Orçamento</a>
-        <a href="/os_lista" class="btn-menu">Ordens de Serviço</a>
-        <a href="/receitas" class="btn-menu">Receitas</a>
-        <a href="/despesas" class="btn-menu">Despesas</a>
-        <a href="/clientes" class="btn-menu">Clientes</a>
-        <a href="/estoque" class="btn-menu">Estoque</a>
-        <a href="/relatorios" class="btn-menu">Relatórios</a>
+    <div class="linha-financeira">
+        <span>📈 Receitas</span>
+        <span>R$ {{ "%.2f"|format(receitas) }}</span>
     </div>
 
-    <!-- 🔥 CARD FINANCEIRO AGORA NO LUGAR CERTO -->
-    <div class="card-financeiro">
-
-        <div class="saldo">
-            💰 Saldo: R$ {{ "%.2f"|format(saldo) }}
-        </div>
-
-        <div class="linha-financeira">
-             📈 Receitas: R$ {{ "%.2f"|format(receitas) }}
-        </div>
-
-        <div class="linha-financeira">
-            📉 Despesas: R$ {{ "%.2f"|format(despesas) }}
-        </div>
-
+    <div class="linha-financeira">
+        <span>📉 Despesas</span>
+        <span>R$ {{ "%.2f"|format(despesas) }}</span>
     </div>
+
+</div>
 
 </body>
 </html>

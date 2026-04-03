@@ -51,23 +51,27 @@
     margin-top:10px;
 }
 
-/* BOTÃO FLUTUANTE */
-.btn-float {
-    position:fixed;
-    bottom:20px;
-    right:20px;
-    background:#dc2626;
-    color:white;
-    width:55px;
-    height:55px;
-    border-radius:50%;
-    text-align:center;
-    line-height:55px;
-    font-size:28px;
-    text-decoration:none;
+.topo-padrao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
 }
 
-/* MODAL CORRIGIDO */
+.btn-add {
+    background: #06d6a0;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-add:hover {
+    background: #05b386;
+}
+
+/* MODAL */
 .modal {
     display: none;
     position: fixed;
@@ -85,12 +89,8 @@
 
 <body>
 
-<div class="header">
-    <a href="/">
-        <img src="/static/logo_housecar.png" style="cursor:pointer;">
-    </a>
-    <h2>💸 Despesas</h2>
-</div>
+<!-- HEADER PADRÃO -->
+{% include "_header.html" %}
 
 <div class="total-box">
     Total Pago: R$ {{ "%.2f"|format(total) }}
@@ -103,8 +103,11 @@
     💳 Crédito: R$ {{ "%.2f"|format(total_credito) }}
 </div>
 
-<br>
-<a href="/" class="btn">⬅ Voltar</a>
+<!-- TOPO PADRÃO -->
+<div class="topo-padrao">
+    <h3>Lista de Despesas</h3>
+    <button class="btn-add" onclick="abrirModal()">+ Despesa</button>
+</div>
 
 <div class="lista">
 {% for d in despesas %}
@@ -124,8 +127,9 @@
         data-id="{{ d[0] }}"
         data-valor="{{ d[2] }}"
         data-forma="{{ d[3] }}"
-        data-status="{{ d[4] }}"
-    >✏️ Editar</button>
+        data-status="{{ d[4] }}">
+        ✏️ Editar
+    </button>
 
     <!-- EXCLUIR -->
     <a href="/excluir_despesa/{{ d[0] }}"
@@ -135,9 +139,6 @@
 </div>
 {% endfor %}
 </div>
-
-<!-- BOTÃO + -->
-<a href="#" class="btn-float" onclick="abrirModal()">+</a>
 
 <!-- MODAL NOVA DESPESA -->
 <div class="modal" id="modal">
