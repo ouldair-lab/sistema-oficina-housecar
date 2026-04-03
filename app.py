@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect
+# 🔐 ADICIONADO session
+from flask import Flask, render_template, request, redirect, session, jsonify, send_file
+
 from banco import criar_tabelas
 from banco import conectar
 from reportlab.pdfgen import canvas
@@ -31,13 +33,47 @@ EMPRESA = {
 
 app = Flask(__name__)
 
+# 🔐 CHAVE SECRETA
+app.secret_key = "housecar_secreta_123"
+
+# 🔐 USUÁRIO SIMPLES
+USUARIO = "admin"
+SENHA = "1234"
+
+# 🔐 PROTEÇÃO
+def proteger():
+    if not session.get("logado"):
+        return redirect("/login")
+
+# 🔐 LOGIN
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        usuario = request.form.get("usuario")
+        senha = request.form.get("senha")
+
+        if usuario == USUARIO and senha == SENHA:
+            session["logado"] = True
+            return redirect("/")
+        else:
+            return "Login inválido"
+
+    return render_template("login.html")
+
+# 🔐 LOGOUT
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
 from banco import total_receitas_recebidas, total_despesas_pagas
 
 @app.route("/")
 def index():
+    if proteger(): return proteger()
+
     receitas = total_receitas_recebidas()
     despesas = total_despesas_pagas()
-
     saldo = receitas - despesas
 
     return render_template(
@@ -47,8 +83,11 @@ def index():
         despesas=despesas
     )
 
+# 🔓 NÃO PROTEGER (cliente acessa)
 @app.route("/orcamento", methods=["GET", "POST"])
 def orcamento():
+    if proteger(): return proteger()
+    
     if request.method == "POST":
         cliente = request.form.get("cliente")
         veiculo = request.form.get("veiculo")
@@ -186,6 +225,7 @@ def aprovar_orcamento(id):
 
 @app.route("/os", methods=["POST"])
 def os():
+    if proteger(): return proteger()
     cliente = request.form.get("cliente")
     veiculo = request.form.get("veiculo")
     placa = request.form.get("placa")
@@ -251,6 +291,7 @@ def os():
 
 @app.route("/os_lista")
 def os_lista():
+    if proteger(): return proteger()
     busca = request.args.get("busca", "").strip()
 
     conn = conectar()
@@ -295,6 +336,7 @@ def os_lista():
 
 @app.route("/abrir_os/<int:id>")
 def abrir_os(id):
+    if proteger(): return proteger()
     conn = conectar()
     cursor = conn.cursor()
 
@@ -336,6 +378,7 @@ def abrir_os(id):
 
 @app.route("/atualizar_os", methods=["POST"])
 def atualizar_os():
+    if proteger(): return proteger()
     ordem_id = request.form.get("ordem_id")
 
     cliente = request.form.get("cliente")
@@ -445,6 +488,7 @@ def formatar_data(data):
 
 @app.route("/gerar_nota/<int:id>")
 def gerar_nota(id):
+    if proteger(): return proteger()
     conn = conectar()
     cursor = conn.cursor()
 
@@ -627,6 +671,7 @@ from datetime import datetime
 
 @app.route("/receitas", methods=["GET", "POST"])
 def receitas():
+    if proteger(): return proteger()
     if request.method == "POST":
         descricao = request.form.get("descricao")
         valor = float(request.form.get("valor") or 0)
@@ -669,6 +714,7 @@ from banco import atualizar_receita
 
 @app.route("/editar_receita/<int:id>", methods=["POST"])
 def editar_receita(id):
+    if proteger(): return proteger()
     valor = float(request.form.get("valor") or 0)
     forma = request.form.get("forma")
     status = request.form.get("status")
@@ -681,6 +727,7 @@ from banco import excluir_receita
 
 @app.route("/excluir_receita/<int:id>")
 def excluir_receita_route(id):
+    if proteger(): return proteger()
     excluir_receita(id)
     return redirect("/receitas")
 
@@ -691,6 +738,7 @@ from banco import (
 
 @app.route("/despesas", methods=["GET", "POST"])
 def despesas():
+    if proteger(): return proteger()
     if request.method == "POST":
         descricao = request.form.get("descricao")
         valor = float(request.form.get("valor") or 0)
@@ -729,6 +777,7 @@ def despesas():
 
 @app.route("/editar_despesa/<int:id>", methods=["POST"])
 def editar_despesa(id):
+    if proteger(): return proteger()
     valor = float(request.form.get("valor") or 0)
     forma = request.form.get("forma")
     status = request.form.get("status")
@@ -739,6 +788,7 @@ def editar_despesa(id):
 
 @app.route("/excluir_despesa/<int:id>")
 def excluir_despesa_route(id):
+    if proteger(): return proteger()
     excluir_despesa(id)
     return redirect("/despesas")
 
@@ -746,6 +796,7 @@ from banco import inserir_cliente, inserir_veiculo, listar_clientes
 
 @app.route("/clientes", methods=["GET", "POST"])
 def clientes():
+    if proteger(): return proteger()
     if request.method == "POST":
         nome = request.form.get("nome")
         telefone = request.form.get("telefone")
@@ -766,6 +817,7 @@ from flask import jsonify
 
 @app.route("/buscar_cliente")
 def buscar_cliente():
+    if proteger(): return proteger()
     termo = request.args.get("q")
 
     conn = conectar()
@@ -799,14 +851,15 @@ def buscar_cliente():
 
 @app.route("/estoque")
 def estoque():
+    if proteger(): return proteger()   
     return "<h1>Estoque</h1>"
 
 @app.route("/relatorios")
 def relatorios():
+    if proteger(): return proteger()
     return "<h1>Relatórios</h1>"
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
 
-# teste webhook
