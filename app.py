@@ -54,7 +54,7 @@ def login():
 
         if usuario == USUARIO and senha == SENHA:
             session["logado"] = True
-            return redirect("/")
+            return redirect("/painel")  # 🔥 AJUSTADO AQUI
         else:
             return "Login inválido"
 
@@ -68,7 +68,13 @@ def logout():
 
 from banco import total_receitas_recebidas, total_despesas_pagas
 
+# 🌐 SITE (PÚBLICO)
 @app.route("/")
+def site():
+    return render_template("site.html")
+
+# 🔐 PAINEL (SISTEMA)
+@app.route("/painel")
 def index():
     if proteger(): return proteger()
 
@@ -83,7 +89,7 @@ def index():
         despesas=despesas
     )
 
-# 🔓 NÃO PROTEGER (cliente acessa)
+
 @app.route("/orcamento", methods=["GET", "POST"])
 def orcamento():
     if proteger(): return proteger()
