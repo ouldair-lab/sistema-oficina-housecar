@@ -47,8 +47,6 @@
         }
 
         .linha-financeira {
-            display: flex;
-            justify-content: space-between;
             font-size: 14px;
             margin-bottom: 4px;
         }
@@ -95,13 +93,11 @@
     </div>
 
     <div class="linha-financeira">
-        <span>📈 Receitas</span>
-        <span>R$ {{ "%.2f"|format(receitas) }}</span>
+        📈 Receitas: R$ {{ "%.2f"|format(receitas) }}
     </div>
 
     <div class="linha-financeira">
-        <span>📉 Despesas</span>
-        <span>R$ {{ "%.2f"|format(despesas) }}</span>
+        📉 Despesas: R$ {{ "%.2f"|format(despesas) }}
     </div>
 
 </div>
