@@ -100,5 +100,17 @@
 
 </div>
 
+{% if aniversariantes %}
+<div class="card-financeiro">
+    <div class="saldo">🎉 Aniversariantes de hoje</div>
+
+    {% for a in aniversariantes %}
+        <div class="linha-financeira">
+            🎂 {{ a[0] }} - {{ a[1] }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 </body>
 </html>

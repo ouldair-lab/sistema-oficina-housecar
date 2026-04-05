@@ -1,6 +1,5 @@
 # 🔐 ADICIONADO session
 from flask import Flask, render_template, request, redirect, session, jsonify, send_file
-
 from banco import criar_tabelas
 from banco import conectar
 from reportlab.pdfgen import canvas
@@ -74,6 +73,7 @@ def logout():
     return redirect("/login")
 
 from banco import total_receitas_recebidas, total_despesas_pagas
+from banco import aniversariantes_hoje
 
 # 🌐 SITE (PÚBLICO)
 @app.route("/")
@@ -89,11 +89,14 @@ def index():
     despesas = total_despesas_pagas()
     saldo = receitas - despesas
 
+    aniversariantes = aniversariantes_hoje()  # 👈 aqui
+
     return render_template(
         "index.html",
         saldo=saldo,
         receitas=receitas,
-        despesas=despesas
+        despesas=despesas,
+        aniversariantes=aniversariantes  # 👈 IMPORTANTE
     )
 
 

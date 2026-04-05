@@ -401,3 +401,30 @@ def buscar_cliente_rapido(termo):
     conn.close()
 
     return resultado
+
+def aniversariantes_hoje():
+    from datetime import datetime
+
+    hoje = datetime.now().strftime("%m-%d")
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT nome, telefone, data_nascimento
+    FROM clientes
+    """)
+
+    clientes = cursor.fetchall()
+    conn.close()
+
+    lista = []
+
+    for c in clientes:
+        if c[2]:
+            data = datetime.strptime(c[2], "%Y-%m-%d").strftime("%m-%d")
+
+            if data == hoje:
+                lista.append((c[0], c[1]))
+
+    return lista
