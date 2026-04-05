@@ -841,27 +841,32 @@ from banco import inserir_cliente, inserir_veiculo, listar_clientes
 @app.route("/clientes", methods=["GET", "POST"])
 def clientes():
     if proteger(): return proteger()
+
     if request.method == "POST":
         nome = request.form.get("nome")
         telefone = request.form.get("telefone")
         documento = request.form.get("documento")
+        data_nascimento = request.form.get("data_nascimento")
+
         veiculo = request.form.get("veiculo")
         placa = request.form.get("placa")
 
-        cliente_id = inserir_cliente(nome, telefone, documento)
+        # 🔥 novo padrão com data de nascimento
+        cliente_id = inserir_cliente(nome, telefone, documento, data_nascimento)
 
+        # 🚗 veículo continua funcionando normal
         if veiculo or placa:
             inserir_veiculo(cliente_id, veiculo, placa)
 
     dados = listar_clientes()
     return render_template("clientes.html", clientes=dados)
 
-from banco import buscar_cliente_rapido
 from flask import jsonify
 
 @app.route("/buscar_cliente")
 def buscar_cliente():
     if proteger(): return proteger()
+
     termo = request.args.get("q")
 
     conn = conectar()
@@ -870,8 +875,13 @@ def buscar_cliente():
     termo = f"%{termo}%"
 
     cursor.execute("""
-    SELECT c.nome, c.telefone, c.documento,
-           v.veiculo, v.placa
+    SELECT 
+        c.nome,
+        c.telefone,
+        c.documento,
+        c.data_nascimento,
+        v.veiculo,
+        v.placa
     FROM clientes c
     LEFT JOIN veiculos v ON v.cliente_id = c.id
     WHERE c.nome LIKE ? OR v.placa LIKE ?
@@ -887,8 +897,9 @@ def buscar_cliente():
             "nome": r[0],
             "telefone": r[1],
             "documento": r[2],
-            "veiculo": r[3],
-            "placa": r[4]
+            "data_nascimento": r[3],
+            "veiculo": r[4],
+            "placa": r[5]
         })
 
     return jsonify(lista)

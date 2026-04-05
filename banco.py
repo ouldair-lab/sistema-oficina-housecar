@@ -288,9 +288,16 @@ def criar_tabela_clientes():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT,
         telefone TEXT NOT NULL,
-        documento TEXT
+        documento TEXT,
+        data_nascimento TEXT
     )
     """)
+
+    # 🔥 garante coluna em banco antigo
+    try:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN data_nascimento TEXT")
+    except:
+        pass
 
     conn.commit()
     conn.close()
@@ -315,14 +322,14 @@ def criar_tabela_veiculos():
 
 
 # 🔷 INSERIR CLIENTE
-def inserir_cliente(nome, telefone, documento):
+def inserir_cliente(nome, telefone, documento, data_nascimento):
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO clientes (nome, telefone, documento)
-    VALUES (?, ?, ?)
-    """, (nome, telefone, documento))
+    INSERT INTO clientes (nome, telefone, documento, data_nascimento)
+    VALUES (?, ?, ?, ?)
+    """, (nome, telefone, documento, data_nascimento))
 
     conn.commit()
     cliente_id = cursor.lastrowid
@@ -345,14 +352,20 @@ def inserir_veiculo(cliente_id, veiculo, placa):
     conn.close()
 
 
-# 🔷 LISTAR CLIENTES (COM VEÍCULO)
+# 🔷 LISTAR CLIENTES (COM VEÍCULOS)
 def listar_clientes():
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
-    SELECT c.id, c.nome, c.telefone, c.documento,
-           v.veiculo, v.placa
+    SELECT 
+        c.id,
+        c.nome,
+        c.telefone,
+        c.documento,
+        c.data_nascimento,
+        v.veiculo,
+        v.placa
     FROM clientes c
     LEFT JOIN veiculos v ON v.cliente_id = c.id
     ORDER BY c.id DESC
@@ -362,6 +375,8 @@ def listar_clientes():
     conn.close()
     return dados
 
+
+# 🔷 BUSCA RÁPIDA
 def buscar_cliente_rapido(termo):
     conn = conectar()
     cursor = conn.cursor()
@@ -369,8 +384,13 @@ def buscar_cliente_rapido(termo):
     termo = f"%{termo}%"
 
     cursor.execute("""
-    SELECT c.nome, c.telefone, c.documento,
-           v.veiculo, v.placa
+    SELECT 
+        c.nome,
+        c.telefone,
+        c.documento,
+        c.data_nascimento,
+        v.veiculo,
+        v.placa
     FROM clientes c
     LEFT JOIN veiculos v ON v.cliente_id = c.id
     WHERE c.nome LIKE ? OR v.placa LIKE ?
