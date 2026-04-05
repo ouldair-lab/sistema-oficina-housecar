@@ -45,7 +45,7 @@ app.secret_key = "housecar_secreta_123"
 
 # 🔐 USUÁRIO SIMPLES
 USUARIO = "admin"
-SENHA = "1234"
+SENHA = "Abc1234"
 
 # 🔐 PROTEÇÃO
 def proteger():
@@ -861,6 +861,11 @@ def buscar_cliente():
         })
 
     return jsonify(lista)
+
+@app.route("/financeiro")
+def financeiro():
+    if proteger(): return proteger()
+    return render_template("financeiro.html")
 
 @app.route("/estoque")
 def estoque():

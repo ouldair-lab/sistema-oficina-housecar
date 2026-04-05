@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Financeiro</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+}
+
+.titulo {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.btn-financeiro {
+    padding: 18px;
+    border-radius: 10px;
+    font-size: 18px;
+    text-decoration: none;
+    color: white;
+    text-align: center;
+    display: block;
+}
+
+.btn-receitas {
+    background: #16a34a;
+}
+
+.btn-receitas:hover {
+    background: #15803d;
+}
+
+.btn-despesas {
+    background: #dc2626;
+}
+
+.btn-despesas:hover {
+    background: #b91c1c;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER PADRÃO -->
+{% include "_header.html" %}
+
+<div class="titulo">💰 Financeiro</div>
+
+<div class="container">
+
+    <a href="/receitas" class="btn-financeiro btn-receitas">
+        📈 Receitas
+    </a>
+
+    <a href="/despesas" class="btn-financeiro btn-despesas">
+        📉 Despesas
+    </a>
+
+</div>
+
+</body>
+</html>
