@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Clientes</title>
+
 <link rel="stylesheet" href="/static/style.css">
 
 <style>
@@ -15,29 +16,39 @@
     margin-bottom: 12px;
 }
 
-.topo-clientes {
+.veiculos {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.veiculo-item {
+    font-size: 14px;
+    margin-bottom: 3px;
+}
+
+.btn-add {
+    margin-top: 8px;
+    background: #06d6a0;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.topo-padrao {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 15px 0;
 }
 
-.btn-add {
+.btn-novo {
     background: #06d6a0;
-    border: none;
     padding: 10px 14px;
     border-radius: 8px;
+    border: none;
     font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-add:hover {
-    background: #05b386;
-}
-
-.form-container {
-    display: none;
-    margin-bottom: 20px;
 }
 </style>
 
@@ -45,61 +56,119 @@
 
 <body>
 
-<!-- HEADER PADRÃO -->
 {% include "_header.html" %}
 
-<!-- TOPO -->
-<div class="topo-clientes">
-    <h3>Lista de Clientes</h3>
-    <button class="btn-add" onclick="toggleForm()">+ Cliente</button>
+<div class="topo-padrao">
+    <h3>👤 Clientes</h3>
+    <button class="btn-novo" onclick="toggleForm()">+ Cliente</button>
 </div>
 
-<!-- FORM -->
-<div id="formCliente" class="form-container">
-
+<!-- FORM CLIENTE -->
+<div id="formCliente" style="display:none;">
 <form method="POST">
 
     <input name="nome" placeholder="Nome" required>
-
-    <input name="telefone" placeholder="Telefone (WhatsApp)" required>
-
+    <input name="telefone" placeholder="Telefone" required>
     <input name="documento" placeholder="CPF ou CNPJ">
-
-    <input name="veiculo" placeholder="Veículo">
-
-    <input name="placa" placeholder="Placa">
 
     <input name="data_nascimento" type="date">
 
+    <input name="veiculo" placeholder="Veículo">
+    <input name="placa" placeholder="Placa">
+
     <button type="submit">Salvar</button>
+
+</form>
+</div>
+
+<!-- LISTA -->
+{% set clientes_agrupados = {} %}
+
+{% for c in clientes %}
+    {% set id = c[0] %}
+
+    {% if id not in clientes_agrupados %}
+        {% set _ = clientes_agrupados.update({
+            id: {
+                "nome": c[1],
+                "telefone": c[2],
+                "documento": c[3],
+                "data": c[4],
+                "veiculos": []
+            }
+        }) %}
+    {% endif %}
+
+    {% if c[5] %}
+        {% set _ = clientes_agrupados[id]["veiculos"].append((c[5], c[6])) %}
+    {% endif %}
+{% endfor %}
+
+{% for id, c in clientes_agrupados.items() %}
+<div class="card">
+
+    <div><strong>NOME:</strong> {{ c.nome }}</div>
+    <div><strong>TELEFONE:</strong> {{ c.telefone }}</div>
+    <div><strong>CPF/CNPJ:</strong> {{ c.documento or '-' }}</div>
+
+    <div><strong>🎂 NASCIMENTO:</strong>
+        {{ c.data[8:10] ~ '/' ~ c.data[5:7] ~ '/' ~ c.data[0:4] if c.data else '-' }}
+    </div>
+
+    <div class="veiculos">
+        <strong>🚗 Veículos:</strong>
+
+        {% if c.veiculos %}
+            {% for v in c.veiculos %}
+                <div class="veiculo-item">
+                    {{ v[0] }} - {{ v[1] }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div>-</div>
+        {% endif %}
+
+        <!-- 🔥 botão adicionar veículo -->
+        <button class="btn-add" data-id="{{ id }}" onclick="abrirVeiculo(this)">
+            + Veículo
+        </button>
+    </div>
+
+</div>
+{% endfor %}
+
+<!-- MODAL VEÍCULO -->
+<div id="modalVeiculo" style="display:none; background:#fff; padding:15px; position:fixed; bottom:0; left:0; right:0; border-radius:15px 15px 0 0;">
+
+<form method="POST" action="/add_veiculo">
+
+    <input type="hidden" name="cliente_id" id="cliente_id">
+
+    <input name="veiculo" placeholder="Veículo" required>
+    <input name="placa" placeholder="Placa" required>
+
+    <button type="submit">Salvar</button>
+    <button type="button" onclick="fecharVeiculo()">Cancelar</button>
 
 </form>
 
 </div>
 
-<!-- LISTA -->
-{% for c in clientes %}
-<div class="card">
-
-    <div><strong>NOME DO CLIENTE:</strong> {{ c[1] }}</div>
-
-    <div><strong>TELEFONE:</strong> {{ c[2] }}</div>
-
-    <div><strong>CPF/CNPJ:</strong> {{ c[3] or '-' }}</div>
-
-    <div><strong>🎂 NASCIMENTO:</strong> {{ c[4][8:10] ~ '/' ~ c[4][5:7] ~ '/' ~ c[4][0:4] if c[4] else '-' }}</div>
-
-    <div><strong>VEÍCULO:</strong> {{ c[5] or '-' }}</div>
-
-    <div><strong>PLACA:</strong> {{ c[6] or '-' }}</div>
-
-</div>
-{% endfor %}
-
 <script>
-function toggleForm() {
-    let form = document.getElementById("formCliente");
-    form.style.display = form.style.display === "none" ? "block" : "none";
+function toggleForm(){
+    let f = document.getElementById("formCliente");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+function abrirVeiculo(btn){
+    let id = btn.getAttribute("data-id");
+
+    document.getElementById("cliente_id").value = id;
+    document.getElementById("modalVeiculo").style.display = "block";
+}
+
+function fecharVeiculo(){
+    document.getElementById("modalVeiculo").style.display = "none";
 }
 </script>
 

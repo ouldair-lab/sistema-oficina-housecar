@@ -99,7 +99,6 @@ def index():
         aniversariantes=aniversariantes  # 👈 IMPORTANTE
     )
 
-
 @app.route("/orcamento", methods=["GET", "POST"])
 def orcamento():
     if proteger(): return proteger()
@@ -949,6 +948,18 @@ def buscar_cliente():
 def financeiro():
     if proteger(): return proteger()
     return render_template("financeiro.html")
+
+@app.route("/add_veiculo", methods=["POST"])
+def add_veiculo():
+    if proteger(): return proteger()
+
+    cliente_id = request.form.get("cliente_id")
+    veiculo = request.form.get("veiculo")
+    placa = request.form.get("placa")
+
+    inserir_veiculo(cliente_id, veiculo, placa)
+
+    return redirect("/clientes")
 
 @app.route("/estoque")
 def estoque():
