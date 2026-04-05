@@ -851,12 +851,50 @@ def clientes():
         veiculo = request.form.get("veiculo")
         placa = request.form.get("placa")
 
-        # 🔥 novo padrão com data de nascimento
-        cliente_id = inserir_cliente(nome, telefone, documento, data_nascimento)
+        conn = conectar()
+        cursor = conn.cursor()
 
-        # 🚗 veículo continua funcionando normal
+        # 🔍 verifica se cliente já existe
+        cursor.execute("""
+        SELECT id FROM clientes
+        WHERE nome = ? AND telefone = ?
+        """, (nome, telefone))
+
+        existente = cursor.fetchone()
+
+        if existente:
+            cliente_id = existente[0]
+
+            # 🚗 adiciona veículo apenas
+            if veiculo or placa:
+                cursor.execute("""
+                INSERT INTO veiculos (cliente_id, veiculo, placa)
+                VALUES (?, ?, ?)
+                """, (cliente_id, veiculo, placa))
+
+            conn.commit()
+            conn.close()
+
+            return redirect("/clientes")
+
+        # 🆕 cria novo cliente
+        cursor.execute("""
+        INSERT INTO clientes (nome, telefone, documento, data_nascimento)
+        VALUES (?, ?, ?, ?)
+        """, (nome, telefone, documento, data_nascimento))
+
+        cliente_id = cursor.lastrowid
+
         if veiculo or placa:
-            inserir_veiculo(cliente_id, veiculo, placa)
+            cursor.execute("""
+            INSERT INTO veiculos (cliente_id, veiculo, placa)
+            VALUES (?, ?, ?)
+            """, (cliente_id, veiculo, placa))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/clientes")
 
     dados = listar_clientes()
     return render_template("clientes.html", clientes=dados)
