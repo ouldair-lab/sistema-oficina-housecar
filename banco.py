@@ -364,6 +364,7 @@ def listar_clientes():
         c.telefone,
         c.documento,
         c.data_nascimento,
+        v.id,
         v.veiculo,
         v.placa
     FROM clientes c

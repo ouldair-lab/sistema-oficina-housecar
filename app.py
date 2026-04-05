@@ -1002,6 +1002,41 @@ def add_veiculo():
 
     return redirect("/clientes")
 
+@app.route("/editar_veiculo/<int:id>", methods=["POST"])
+def editar_veiculo(id):
+    if proteger(): return proteger()
+
+    veiculo = request.form.get("veiculo")
+    placa = request.form.get("placa")
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE veiculos
+    SET veiculo=?, placa=?
+    WHERE id=?
+    """, (veiculo, placa, id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/clientes")
+
+@app.route("/excluir_veiculo/<int:id>")
+def excluir_veiculo(id):
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM veiculos WHERE id=?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/clientes")
+
 @app.route("/estoque")
 def estoque():
     if proteger(): return proteger()   

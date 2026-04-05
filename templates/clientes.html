@@ -24,7 +24,7 @@
 
 .veiculo-item {
     font-size: 14px;
-    margin-bottom: 3px;
+    margin-bottom: 8px;
 }
 
 .btn-add {
@@ -99,7 +99,7 @@
     {% endif %}
 
     {% if c[5] %}
-        {% set _ = clientes_agrupados[id]["veiculos"].append((c[5], c[6])) %}
+        {% set _ = clientes_agrupados[id]["veiculos"].append((c[5], c[6], c[7])) %}
     {% endif %}
 {% endfor %}
 
@@ -115,9 +115,8 @@
         {{ c["data"][8:10] ~ '/' ~ c["data"][5:7] ~ '/' ~ c["data"][0:4] if c["data"] else '-' }}
     </div>
 
-    <!-- EDITAR -->
+    <!-- EDITAR CLIENTE -->
     <form method="POST" action="/editar_cliente/{{ id }}">
-
         <input name="nome" value="{{ c['nome'] }}">
         <input name="telefone" value="{{ c['telefone'] }}">
         <input name="documento" value="{{ c['documento'] }}">
@@ -126,7 +125,7 @@
         <button type="submit">💾 Salvar</button>
     </form>
 
-    <!-- EXCLUIR -->
+    <!-- EXCLUIR CLIENTE -->
     <a href="/excluir_cliente/{{ id }}" 
        onclick="return confirm('Excluir cliente?')"
        style="color:red;">
@@ -140,7 +139,20 @@
         {% if c["veiculos"] %}
             {% for v in c["veiculos"] %}
                 <div class="veiculo-item">
-                    {{ v[0] }} - {{ v[1] }}
+
+                    <form method="POST" action="/editar_veiculo/{{ v[0] }}">
+                        <input name="veiculo" value="{{ v[1] }}">
+                        <input name="placa" value="{{ v[2] }}">
+
+                        <button type="submit">💾</button>
+                    </form>
+
+                    <a href="/excluir_veiculo/{{ v[0] }}" 
+                       onclick="return confirm('Excluir veículo?')"
+                       style="color:red;">
+                       🗑
+                    </a>
+
                 </div>
             {% endfor %}
         {% else %}
