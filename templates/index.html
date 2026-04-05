@@ -106,8 +106,16 @@
 
     {% for a in aniversariantes %}
         <div class="linha-financeira">
-            🎂 {{ a[0] }} - {{ a[1] }}
-        </div>
+    🎂 {{ a[0] }} 
+
+    <a 
+        href="https://wa.me/55{{ a[1]|replace(' ', '') }}?text=🎉%20Parabéns%20{{ a[0] }}!%20A%20House%20Car%20deseja%20tudo%20de%20bom!%20🚗🔧"
+        target="_blank"
+        style="margin-left:10px; color:#22c55e; font-weight:bold;"
+    >
+        📲 Enviar
+    </a>
+</div>
     {% endfor %}
 </div>
 {% endif %}
