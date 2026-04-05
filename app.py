@@ -350,15 +350,46 @@ def os_lista():
 @app.route("/abrir_os/<int:id>")
 def abrir_os(id):
     if proteger(): return proteger()
+
+    # 🆕 NOVA OS (quando clica em + Nova OS)
+    if id == 0:
+        return render_template(
+            "os.html",
+            id=0,
+            cliente="",
+            veiculo="",
+            placa="",
+            data_entrada="",
+            data_saida="",
+            mecanico="",
+            problema="",
+            diagnostico="",
+            total=0,
+            status="EM ANDAMENTO",
+            pecas=[],
+            servicos=[]
+        )
+
     conn = conectar()
     cursor = conn.cursor()
 
     # Dados principais
-    cursor.execute("SELECT cliente, veiculo, placa, data_entrada, data_saida, mecanico, problema, diagnostico, total, status FROM ordens WHERE id = ?", (id,))
+    cursor.execute("""
+        SELECT cliente, veiculo, placa, data_entrada, data_saida, mecanico, problema, diagnostico, total, status
+        FROM ordens WHERE id = ?
+    """, (id,))
     ordem = cursor.fetchone()
 
+    # 🔒 Segurança extra (caso ID não exista)
+    if not ordem:
+        conn.close()
+        return "OS não encontrada"
+
     # Itens
-    cursor.execute("SELECT tipo, nome, valor, quantidade, comissao FROM itens WHERE ordem_id = ?", (id,))
+    cursor.execute("""
+        SELECT tipo, nome, valor, quantidade, comissao
+        FROM itens WHERE ordem_id = ?
+    """, (id,))
     itens = cursor.fetchall()
 
     conn.close()
