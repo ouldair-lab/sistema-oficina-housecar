@@ -944,6 +944,47 @@ def buscar_cliente():
 
     return jsonify(lista)
 
+@app.route("/editar_cliente/<int:id>", methods=["POST"])
+def editar_cliente(id):
+    if proteger(): return proteger()
+
+    nome = request.form.get("nome")
+    telefone = request.form.get("telefone")
+    documento = request.form.get("documento")
+    data_nascimento = request.form.get("data_nascimento")
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE clientes
+    SET nome=?, telefone=?, documento=?, data_nascimento=?
+    WHERE id=?
+    """, (nome, telefone, documento, data_nascimento, id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/clientes")
+
+@app.route("/excluir_cliente/<int:id>")
+def excluir_cliente(id):
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # 🔥 remove veículos primeiro
+    cursor.execute("DELETE FROM veiculos WHERE cliente_id=?", (id,))
+
+    # 🔥 remove cliente
+    cursor.execute("DELETE FROM clientes WHERE id=?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/clientes")
+
 @app.route("/financeiro")
 def financeiro():
     if proteger(): return proteger()
