@@ -35,7 +35,10 @@
 <div class="card">
 
     <strong>{{ resultado.mecanico }}</strong><br>
-    Período: {{ resultado.inicio }} até {{ resultado.fim }}<br>
+    Período: 
+    {{ resultado.inicio[8:10] ~ '/' ~ resultado.inicio[5:7] ~ '/' ~ resultado.inicio[0:4] }} 
+    até 
+    {{ resultado.fim[8:10] ~ '/' ~ resultado.fim[5:7] ~ '/' ~ resultado.fim[0:4] }}<br>
     Valor: R$ {{ resultado.valor }}
 
     <br><br>
