@@ -7,14 +7,42 @@
 <title>Pagamentos</title>
 <link rel="stylesheet" href="/static/style.css">
 
+<style>
+.card {
+    background: #1e3a8a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.topo-padrao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.btn-novo {
+    background: #06d6a0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+}
+</style>
 </head>
 
 <body>
 
 {% include "_header.html" %}
 
-<h3>💰 Pagamento de Mecânicos</h3>
+<div class="topo-padrao">
+    <h3>💰 Pagamentos de Mecânicos</h3>
+    <button class="btn-novo" onclick="toggleForm()">+ Pagamento</button>
+</div>
 
+<!-- FORM -->
+<div id="formPagamento" style="display:none;">
 <form method="POST">
 
     <select name="mecanico" required>
@@ -30,15 +58,19 @@
     <button type="submit">Calcular</button>
 
 </form>
+</div>
 
 {% if resultado %}
 <div class="card">
 
     <strong>{{ resultado.mecanico }}</strong><br>
+
     Período: 
     {{ resultado.inicio[8:10] ~ '/' ~ resultado.inicio[5:7] ~ '/' ~ resultado.inicio[0:4] }} 
     até 
-    {{ resultado.fim[8:10] ~ '/' ~ resultado.fim[5:7] ~ '/' ~ resultado.fim[0:4] }}<br>
+    {{ resultado.fim[8:10] ~ '/' ~ resultado.fim[5:7] ~ '/' ~ resultado.fim[0:4] }}
+
+    <br>
     Valor: R$ {{ resultado.valor }}
 
     <br><br>
@@ -54,6 +86,30 @@
 
 </div>
 {% endif %}
+
+<!-- LISTA -->
+{% for p in pagamentos %}
+<div class="card">
+
+    <strong>{{ p[1] }}</strong><br>
+
+    Período:
+    {{ p[2][8:10] }}/{{ p[2][5:7] }}/{{ p[2][0:4] }}
+    até
+    {{ p[3][8:10] }}/{{ p[3][5:7] }}/{{ p[3][0:4] }}
+
+    <br>
+    Valor: R$ {{ p[4] }}
+
+</div>
+{% endfor %}
+
+<script>
+function toggleForm(){
+    let f = document.getElementById("formPagamento");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+}
+</script>
 
 </body>
 </html>

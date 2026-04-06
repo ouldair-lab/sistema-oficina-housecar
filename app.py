@@ -104,6 +104,12 @@ def index():
         aniversariantes=aniversariantes  # 👈 IMPORTANTE
     )
 
+@app.route("/financeiro")
+def financeiro():
+    if proteger(): return proteger()
+
+    return render_template("financeiro.html")
+
 @app.route("/orcamento", methods=["GET", "POST"])
 def orcamento():
     if proteger(): return proteger()
@@ -1001,11 +1007,6 @@ def excluir_cliente(id):
 
     return redirect("/clientes")
 
-@app.route("/financeiro")
-def financeiro():
-    if proteger(): return proteger()
-    return render_template("financeiro.html")
-
 @app.route("/add_veiculo", methods=["POST"])
 def add_veiculo():
     if proteger(): return proteger()
@@ -1092,8 +1093,10 @@ def pagamentos():
     if proteger(): return proteger()
 
     mecanicos = listar_mecanicos()
-
     resultado = None
+
+    conn = conectar()
+    cursor = conn.cursor()
 
     if request.method == "POST":
         mecanico = request.form.get("mecanico")
@@ -1109,9 +1112,14 @@ def pagamentos():
             "fim": data_fim
         }
 
+    cursor.execute("SELECT * FROM pagamentos ORDER BY id DESC")
+    pagamentos_lista = cursor.fetchall()
+    conn.close()
+
     return render_template("pagamentos.html",
         mecanicos=mecanicos,
-        resultado=resultado
+        resultado=resultado,
+        pagamentos=pagamentos_lista
     )
 
 @app.route("/registrar_pagamento", methods=["POST"])
@@ -1121,7 +1129,7 @@ def registrar_pagamento():
     mecanico = request.form.get("mecanico")
     inicio = request.form.get("data_inicio")
     fim = request.form.get("data_fim")
-    valor = request.form.get("valor")
+    valor = float(request.form.get("valor"))
 
     from datetime import datetime
     data_pagamento = datetime.now().strftime("%Y-%m-%d")
@@ -1129,10 +1137,17 @@ def registrar_pagamento():
     conn = conectar()
     cursor = conn.cursor()
 
+    # salva histórico
     cursor.execute("""
     INSERT INTO pagamentos (mecanico, data_inicio, data_fim, valor, data_pagamento)
     VALUES (?, ?, ?, ?, ?)
     """, (mecanico, inicio, fim, valor, data_pagamento))
+
+    # 🔥 cria despesa pendente
+    cursor.execute("""
+    INSERT INTO despesas (descricao, valor, data, status)
+    VALUES (?, ?, ?, ?)
+    """, (f"Pagamento mecânico - {mecanico}", valor, data_pagamento, "PENDENTE"))
 
     conn.commit()
     conn.close()
