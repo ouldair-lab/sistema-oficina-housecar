@@ -497,3 +497,19 @@ def listar_mecanicos():
 
     conn.close()
     return dados
+
+# 🔷 BUSCAR MECÂNICO POR NOME
+def buscar_mecanico(nome):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT comissao_padrao, comissao_baixa, limite_baixa
+    FROM mecanicos
+    WHERE nome = ?
+    """, (nome,))
+
+    dado = cursor.fetchone()
+    conn.close()
+
+    return dado

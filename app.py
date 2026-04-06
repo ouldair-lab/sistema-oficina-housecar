@@ -318,14 +318,20 @@ def os_lista():
     cursor = conn.cursor()
 
     query = """
-    SELECT o.id, o.cliente, o.veiculo, o.placa, o.total, o.tipo, o.status,
+    SELECT o.id, o.cliente, o.veiculo, o.placa, o.total, o.tipo, o.status, o.mecanico,
         SUM(
             CASE 
                 WHEN i.tipo = 'servico' AND i.comissao = 1 THEN 
                     CASE 
-                        WHEN (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) <= ? 
-                        THEN (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) * ?
-                        ELSE (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) * ?
+                        WHEN (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) <= (
+                            SELECT limite_baixa FROM mecanicos WHERE nome = o.mecanico
+                        )
+                        THEN (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) * (
+                            SELECT comissao_baixa FROM mecanicos WHERE nome = o.mecanico
+                        )
+                        ELSE (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) * (
+                            SELECT comissao_padrao FROM mecanicos WHERE nome = o.mecanico
+                        )
                     END
                 ELSE 0
             END
@@ -349,9 +355,8 @@ def os_lista():
 
     cursor.execute(query, params)
 
-    from banco import listar_ordens
-    
-    ordens = listar_ordens()
+    ordens = cursor.fetchall()
+    conn.commit()
     conn.close()
 
     return render_template("os_lista.html", ordens=ordens, busca=busca)
