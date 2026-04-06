@@ -278,6 +278,31 @@ def total_despesas_pagas():
     conn.close()
     return total
 
+# 🔷 LISTAR ORDENS DE SERVIÇO (COM MECÂNICO)
+def listar_ordens():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT 
+        id,
+        cliente,
+        veiculo,
+        placa,
+        total,
+        tipo,
+        status,
+        mecanico,
+        total  -- usado como base de comissão (temporário)
+    FROM ordens
+    ORDER BY id DESC
+    """)
+
+    dados = cursor.fetchall()
+    conn.close()
+
+    return dados
+
 # 🔷 CLIENTES
 def criar_tabela_clientes():
     conn = conectar()

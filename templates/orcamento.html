@@ -121,9 +121,11 @@
         <label>Mecânico:</label>
         <select name="mecanico">
             <option value="">Selecione</option>
-            <option>Victor</option>
-            <option>Erick</option>
-            <option>Max</option>
+
+            {% for m in mecanicos %}
+                <option value="{{ m[1] }}">{{ m[1] }}</option>
+            {% endfor %}
+
         </select>
     </div>
 </div>

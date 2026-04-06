@@ -109,6 +109,7 @@ tr:nth-child(even) {
         <th>Total</th>
         <th>Tipo</th>
         <th>Status</th>
+        <th>Mecânico</th>
         <th>Comissão</th>
         <th>Ações</th>
     </tr>
@@ -134,8 +135,8 @@ tr:nth-child(even) {
             {{ o[6] }}
         </span>
     </td>
-
-    <td>R$ {{ "%.2f"|format(o[7] or 0) }}</td>
+    <td>{{ o[7] }}</td>
+    <td>R$ {{ "%.2f"|format(o[8] or 0) }}</td>
 
     <td>
         <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>

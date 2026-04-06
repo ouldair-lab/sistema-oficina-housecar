@@ -108,9 +108,14 @@
     <div class="campo">
         <label>Mecânico:</label>
         <select name="mecanico">
-            <option value="Victor" {% if mecanico == "Victor" %}selected{% endif %}>Victor</option>
-            <option value="Erick" {% if mecanico == "Erick" %}selected{% endif %}>Erick</option>
-            <option value="Max" {% if mecanico == "Max" %}selected{% endif %}>Max</option>
+            <option value="">Selecione</option>
+
+            {% for m in mecanicos %}
+                <option value="{{ m[1] }}" {% if mecanico == m[1] %}selected{% endif %}>
+                    {{ m[1] }}
+                </option>
+            {% endfor %}
+
         </select>
     </div>
 </div>

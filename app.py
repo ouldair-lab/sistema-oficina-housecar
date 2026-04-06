@@ -8,6 +8,7 @@ from datetime import datetime
 from banco import criar_tabela_despesas
 from banco import criar_tabela_clientes, criar_tabela_veiculos
 from banco import criar_tabela_mecanicos
+from banco import listar_mecanicos
 
 def iniciar_banco():
     criar_tabelas()
@@ -204,6 +205,7 @@ def orcamento():
 
         conn.commit()
         conn.close()
+        mecanicos = listar_mecanicos()
 
         return render_template(
             "ficha.html",
@@ -213,6 +215,7 @@ def orcamento():
             placa=placa,
             problema=problema,
             diagnostico=diagnostico,
+            mecanicos=mecanicos,
             pecas=pecas,
             servicos=servicos,
             total=total
@@ -346,7 +349,9 @@ def os_lista():
 
     cursor.execute(query, params)
 
-    ordens = cursor.fetchall()
+    from banco import listar_ordens
+    
+    ordens = listar_ordens()
     conn.close()
 
     return render_template("os_lista.html", ordens=ordens, busca=busca)
@@ -407,6 +412,7 @@ def abrir_os(id):
         else:
             servicos.append((item[1], item[2], item[3], bool(item[4])))
 
+    mecanicos = listar_mecanicos()
     return render_template(
         "os.html",
         id=id,
@@ -421,7 +427,8 @@ def abrir_os(id):
         total=ordem[8],
         status=ordem[9],
         pecas=pecas,
-        servicos=servicos
+        servicos=servicos,
+        mecanicos=mecanicos
     )
 
 @app.route("/atualizar_os", methods=["POST"])
