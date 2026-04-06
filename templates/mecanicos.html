@@ -14,6 +14,21 @@
     border-radius: 10px;
     margin-bottom: 12px;
 }
+
+.topo-padrao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.btn-novo {
+    background: #06d6a0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+}
 </style>
 
 </head>
@@ -22,28 +37,52 @@
 
 {% include "_header.html" %}
 
-<h3>🔧 Mecânicos</h3>
+<div class="topo-padrao">
+    <h3>🔧 Mecânicos</h3>
+    <button class="btn-novo" onclick="toggleForm()">+ Mecânico</button>
+</div>
 
+<!-- FORM -->
+<div id="formMecanico" style="display:none;">
 <form method="POST">
+
     <input name="nome" placeholder="Nome" required>
 
     <input name="comissao_padrao" placeholder="Comissão padrão (ex: 0.4)" required>
-    <input name="comissao_baixa" placeholder="Comissão serviço baixo (ex: 0.7)" required>
-    <input name="limite_baixa" placeholder="Limite valor baixo (ex: 50)" required>
+    <input name="comissao_baixa" placeholder="Comissão baixa (ex: 0.7)" required>
+    <input name="limite_baixa" placeholder="Limite (ex: 50)" required>
 
     <button type="submit">Salvar</button>
+
 </form>
+</div>
 
-<hr>
-
+<!-- LISTA -->
 {% for m in mecanicos %}
 <div class="card">
+
     <strong>{{ m[1] }}</strong><br>
     Comissão padrão: {{ m[2] }}<br>
     Comissão baixa: {{ m[3] }}<br>
     Limite: R$ {{ m[4] }}
+
+    <br><br>
+
+    <a href="/excluir_mecanico/{{ m[0] }}"
+       onclick="return confirm('Excluir mecânico?')"
+       style="color:red;">
+       🗑 Excluir
+    </a>
+
 </div>
 {% endfor %}
+
+<script>
+function toggleForm(){
+    let f = document.getElementById("formMecanico");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+}
+</script>
 
 </body>
 </html>
