@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mecânicos</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+.card {
+    background: #1e3a8a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+</style>
+
+</head>
+
+<body>
+
+{% include "_header.html" %}
+
+<h3>🔧 Mecânicos</h3>
+
+<form method="POST">
+    <input name="nome" placeholder="Nome" required>
+
+    <input name="comissao_padrao" placeholder="Comissão padrão (ex: 0.4)" required>
+    <input name="comissao_baixa" placeholder="Comissão serviço baixo (ex: 0.7)" required>
+    <input name="limite_baixa" placeholder="Limite valor baixo (ex: 50)" required>
+
+    <button type="submit">Salvar</button>
+</form>
+
+<hr>
+
+{% for m in mecanicos %}
+<div class="card">
+    <strong>{{ m[1] }}</strong><br>
+    Comissão padrão: {{ m[2] }}<br>
+    Comissão baixa: {{ m[3] }}<br>
+    Limite: R$ {{ m[4] }}
+</div>
+{% endfor %}
+
+</body>
+</html>

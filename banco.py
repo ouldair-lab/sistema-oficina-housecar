@@ -429,3 +429,46 @@ def aniversariantes_hoje():
                 lista.append((c[0], c[1]))
 
     return lista
+
+# 🔷 MECÂNICOS
+def criar_tabela_mecanicos():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS mecanicos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT,
+        comissao_padrao REAL,
+        comissao_baixa REAL,
+        limite_baixa REAL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+# 🔷 INSERIR MECÂNICO
+def inserir_mecanico(nome, comissao_padrao, comissao_baixa, limite_baixa):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    INSERT INTO mecanicos (nome, comissao_padrao, comissao_baixa, limite_baixa)
+    VALUES (?, ?, ?, ?)
+    """, (nome, comissao_padrao, comissao_baixa, limite_baixa))
+
+    conn.commit()
+    conn.close()
+
+
+# 🔷 LISTAR MECÂNICOS
+def listar_mecanicos():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM mecanicos ORDER BY nome")
+    dados = cursor.fetchall()
+
+    conn.close()
+    return dados

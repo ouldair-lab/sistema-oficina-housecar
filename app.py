@@ -7,12 +7,14 @@ from banco import gerar_ou_atualizar_receita_os
 from datetime import datetime
 from banco import criar_tabela_despesas
 from banco import criar_tabela_clientes, criar_tabela_veiculos
+from banco import criar_tabela_mecanicos
 
 def iniciar_banco():
     criar_tabelas()
     criar_tabela_despesas()
     criar_tabela_clientes()
     criar_tabela_veiculos()
+    criar_tabela_mecanicos()
 
 CONFIG = {
     "comissao_padrao": 0.4,
@@ -1036,6 +1038,25 @@ def excluir_veiculo(id):
     conn.close()
 
     return redirect("/clientes")
+
+from banco import inserir_mecanico, listar_mecanicos
+
+@app.route("/mecanicos", methods=["GET", "POST"])
+def mecanicos():
+    if proteger(): return proteger()
+
+    if request.method == "POST":
+        nome = request.form.get("nome")
+        comissao_padrao = float(request.form.get("comissao_padrao"))
+        comissao_baixa = float(request.form.get("comissao_baixa"))
+        limite_baixa = float(request.form.get("limite_baixa"))
+
+        inserir_mecanico(nome, comissao_padrao, comissao_baixa, limite_baixa)
+
+        return redirect("/mecanicos")
+
+    dados = listar_mecanicos()
+    return render_template("mecanicos.html", mecanicos=dados)
 
 @app.route("/estoque")
 def estoque():
