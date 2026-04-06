@@ -513,3 +513,66 @@ def buscar_mecanico(nome):
     conn.close()
 
     return dado
+
+# 🔷 PAGAMENTOS DE MECÂNICOS
+def criar_tabela_pagamentos():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS pagamentos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mecanico TEXT,
+        data_inicio TEXT,
+        data_fim TEXT,
+        valor REAL,
+        data_pagamento TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+def calcular_comissao_periodo(mecanico, data_inicio, data_fim):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT 
+        o.total,
+        i.valor,
+        i.quantidade,
+        i.comissao
+    FROM ordens o
+    LEFT JOIN itens i ON o.id = i.ordem_id
+    WHERE o.mecanico = ?
+    AND DATE(o.data_entrada) BETWEEN DATE(?) AND DATE(?)
+    """, (mecanico, data_inicio, data_fim))
+
+    dados = cursor.fetchall()
+    conn.close()
+
+    total_comissao = 0
+
+    from banco import buscar_mecanico
+    config = buscar_mecanico(mecanico)
+
+    if not config:
+        return 0
+
+    comissao_padrao, comissao_baixa, limite = config
+
+    for d in dados:
+        valor = float(d[1] or 0)
+        qtd = float(d[2] or 1)
+        usar = d[3]
+
+        if usar:
+            total_item = valor * qtd
+
+            if total_item <= limite:
+                total_comissao += total_item * comissao_baixa
+            else:
+                total_comissao += total_item * comissao_padrao
+
+    return round(total_comissao, 2)

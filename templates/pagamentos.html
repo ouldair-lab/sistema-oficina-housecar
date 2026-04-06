@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Pagamentos</title>
+<link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+<body>
+
+{% include "_header.html" %}
+
+<h3>💰 Pagamento de Mecânicos</h3>
+
+<form method="POST">
+
+    <select name="mecanico" required>
+        <option value="">Selecione</option>
+        {% for m in mecanicos %}
+            <option value="{{ m[1] }}">{{ m[1] }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="date" name="data_inicio" required>
+    <input type="date" name="data_fim" required>
+
+    <button type="submit">Calcular</button>
+
+</form>
+
+{% if resultado %}
+<div class="card">
+
+    <strong>{{ resultado.mecanico }}</strong><br>
+    Período: {{ resultado.inicio }} até {{ resultado.fim }}<br>
+    Valor: R$ {{ resultado.valor }}
+
+    <br><br>
+
+    <form method="POST" action="/registrar_pagamento">
+        <input type="hidden" name="mecanico" value="{{ resultado.mecanico }}">
+        <input type="hidden" name="data_inicio" value="{{ resultado.inicio }}">
+        <input type="hidden" name="data_fim" value="{{ resultado.fim }}">
+        <input type="hidden" name="valor" value="{{ resultado.valor }}">
+
+        <button type="submit">💰 Registrar pagamento</button>
+    </form>
+
+</div>
+{% endif %}
+
+</body>
+</html>

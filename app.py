@@ -9,6 +9,7 @@ from banco import criar_tabela_despesas
 from banco import criar_tabela_clientes, criar_tabela_veiculos
 from banco import criar_tabela_mecanicos
 from banco import listar_mecanicos
+from banco import criar_tabela_pagamentos
 
 def iniciar_banco():
     criar_tabelas()
@@ -16,6 +17,7 @@ def iniciar_banco():
     criar_tabela_clientes()
     criar_tabela_veiculos()
     criar_tabela_mecanicos()
+    criar_tabela_pagamentos()
 
 CONFIG = {
     "comissao_padrao": 0.4,
@@ -1083,6 +1085,59 @@ def excluir_mecanico(id):
     conn.close()
 
     return redirect("/mecanicos")
+
+from banco import calcular_comissao_periodo
+@app.route("/pagamentos", methods=["GET", "POST"])
+def pagamentos():
+    if proteger(): return proteger()
+
+    mecanicos = listar_mecanicos()
+
+    resultado = None
+
+    if request.method == "POST":
+        mecanico = request.form.get("mecanico")
+        data_inicio = request.form.get("data_inicio")
+        data_fim = request.form.get("data_fim")
+
+        valor = calcular_comissao_periodo(mecanico, data_inicio, data_fim)
+
+        resultado = {
+            "mecanico": mecanico,
+            "valor": valor,
+            "inicio": data_inicio,
+            "fim": data_fim
+        }
+
+    return render_template("pagamentos.html",
+        mecanicos=mecanicos,
+        resultado=resultado
+    )
+
+@app.route("/registrar_pagamento", methods=["POST"])
+def registrar_pagamento():
+    if proteger(): return proteger()
+
+    mecanico = request.form.get("mecanico")
+    inicio = request.form.get("data_inicio")
+    fim = request.form.get("data_fim")
+    valor = request.form.get("valor")
+
+    from datetime import datetime
+    data_pagamento = datetime.now().strftime("%Y-%m-%d")
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    INSERT INTO pagamentos (mecanico, data_inicio, data_fim, valor, data_pagamento)
+    VALUES (?, ?, ?, ?, ?)
+    """, (mecanico, inicio, fim, valor, data_pagamento))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/pagamentos")
 
 @app.route("/estoque")
 def estoque():
