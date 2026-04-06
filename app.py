@@ -353,7 +353,7 @@ def os_lista():
 
     query += " GROUP BY o.id ORDER BY o.id DESC"
 
-    cursor.execute(query, params)
+    cursor.execute(query)
 
     ordens = cursor.fetchall()
     conn.commit()
@@ -1069,6 +1069,20 @@ def mecanicos():
 
     dados = listar_mecanicos()
     return render_template("mecanicos.html", mecanicos=dados)
+
+@app.route("/excluir_mecanico/<int:id>")
+def excluir_mecanico(id):
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM mecanicos WHERE id=?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/mecanicos")
 
 @app.route("/estoque")
 def estoque():
