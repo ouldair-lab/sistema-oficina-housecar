@@ -94,26 +94,31 @@ button:hover {
 
 /* 🔷 LINHA VALORES (PC) */
 .linha-valores {
-    display: grid;
-    grid-template-columns: 80px 120px 120px 100px auto;
-    gap: 10px;
-    align-items: end;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* botão excluir padrão sistema */
+.btn-remove {
+    background: #e63946;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: white;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+.btn-remove:hover {
+    background: #c1121f;
 }
 
 /* 🔷 CAMPOS INTERNOS */
 .item-campo {
     display: flex;
     flex-direction: column;
-}
-
-/* 🔷 BOTÃO EXCLUIR */
-.btn-remove {
-    background: #e63946;
-    width: 35px;
-    height: 35px;
-    border-radius: 8px;
-    padding: 0;
-    align-self: end;
 }
 
 /* 🔷 TOTAL */
