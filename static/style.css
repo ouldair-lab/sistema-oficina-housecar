@@ -326,9 +326,38 @@ button {
 /* LINHA DE VALORES (PC) */
 .linha-valores {
     display: grid;
-    grid-template-columns: 80px 120px 120px 100px 50px;
+    grid-template-columns: 80px 120px 120px 80px 50px;
     gap: 10px;
     align-items: end;
+}
+
+/* FORÇA OS INPUTS RESPEITAREM O GRID */
+.linha-valores input {
+    width: 100% !important;
+    min-width: 0;
+}
+
+.linha-valores button {
+    height: 40px;
+    width: 40px;
+    padding: 0;
+}
+
+.btn-novo {
+    background: #06d6a0;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    width: 100%;
+}
+
+.btn {
+    background: #16a34a;
+}
+
+.btn-zap {
+    background: #22c55e;
 }
 
 /* CAMPOS */
@@ -336,11 +365,6 @@ button {
     display: flex;
     flex-direction: column;
     font-size: 12px;
-}
-
-/* BOTÃO X */
-.linha-valores button {
-    height: 40px;
 }
 
 /* MOBILE */
