@@ -142,6 +142,11 @@
 
         </select>
     </div>
+
+    <div class="item-campo">
+        <label>Comissão</label>
+        <input type="checkbox" name="servico_comissao_${i}">
+    </div>
 </div>
 
 <h3>🔧 Peças</h3>
@@ -246,7 +251,7 @@ function addServico(){
 }
 
 function calcularLinha(el){
-    let linha = el.parentElement;
+    let linha = el.closest('.linha-item');
 
     let qtd = linha.querySelector('input[name*="qtd"]');
     let valor = linha.querySelector('input[name*="valor"]');
@@ -255,7 +260,9 @@ function calcularLinha(el){
     let q = parseFloat(qtd.value || 0);
     let v = parseFloat(valor.value || 0);
 
-    total.value = (q * v).toFixed(2);
+    let resultado = q * v;
+
+    total.value = resultado.toFixed(2);
 
     calcularTotalGeral();
 }
@@ -263,7 +270,7 @@ function calcularLinha(el){
 function calcularTotalGeral(){
     let total = 0;
 
-    document.querySelectorAll('input[readonly]').forEach(el => {
+    document.querySelectorAll('.linha-item input[readonly]').forEach(el => {
         total += parseFloat(el.value || 0);
     });
 

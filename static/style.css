@@ -326,9 +326,21 @@ button {
 /* LINHA DE VALORES (PC) */
 .linha-valores {
     display: grid;
-    grid-template-columns: 80px 120px 120px 100px 50px;
+    grid-template-columns: 80px 120px 120px 100px;
     gap: 10px;
     align-items: end;
+}
+
+.linha-item {
+    position: relative;
+}
+
+.linha-item button {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 35px;
+    height: 35px;
 }
 
 /* FORÇA OS INPUTS RESPEITAREM O GRID */
