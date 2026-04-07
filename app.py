@@ -391,7 +391,8 @@ def abrir_os(id):
             total=0,
             status="EM ANDAMENTO",
             pecas=[],
-            servicos=[]
+            servicos=[],
+            mecanicos=mecanicos
         )
 
     conn = conectar()
