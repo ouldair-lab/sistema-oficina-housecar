@@ -373,6 +373,7 @@ def os_lista():
 @app.route("/abrir_os/<int:id>")
 def abrir_os(id):
     if proteger(): return proteger()
+    mecanicos = listar_mecanicos()
 
     # 🆕 NOVA OS (quando clica em + Nova OS)
     if id == 0:
@@ -425,8 +426,7 @@ def abrir_os(id):
             pecas.append((item[1], item[2], item[3]))
         else:
             servicos.append((item[1], item[2], item[3], bool(item[4])))
-
-    mecanicos = listar_mecanicos()
+    
     return render_template(
         "os.html",
         id=id,
