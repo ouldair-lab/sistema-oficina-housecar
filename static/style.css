@@ -325,14 +325,13 @@ button {
     margin-top: 10px;
 }
 
-.campo-full {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 8px;
+.campo-full input {
+    width: 100%;
 }
 
 .linha-valores {
-    display: flex;
+    display: grid;
+    grid-template-columns: 80px 120px 120px 100px auto;
     gap: 10px;
     align-items: end;
 }
@@ -347,6 +346,6 @@ button {
 /* MOBILE */
 @media (max-width: 600px){
     .linha-valores {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 }
