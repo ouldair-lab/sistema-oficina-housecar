@@ -257,61 +257,6 @@ function selecionarCliente(c){
 cliente.addEventListener("input",e=>buscarClientes(e.target.value));
 placa.addEventListener("input",e=>buscarClientes(e.target.value));
 
-function addPeca(nome="",valor="",qtd=1){
-    let div=document.createElement("div");
-    div.classList.add("item");
-
-    div.innerHTML=`
-    <input name="peca_nome" value="${nome}">
-    <input name="peca_valor" value="${valor}" type="number" step="0.01" oninput="calcular()">
-    <input name="peca_qtd" value="${qtd}" type="number" oninput="calcular()">
-    <button type="button" onclick="removerItem(this)">❌</button>
-    <span class="total_item"></span>
-    `;
-    pecas.appendChild(div);
-}
-
-let contadorServico=0;
-
-function addServico(nome="",valor="",qtd=1){
-    let i=contadorServico++;
-    let div=document.createElement("div");
-    div.classList.add("item");
-
-    div.innerHTML=`
-    <input name="servico_nome_${i}" value="${nome}">
-    <input name="servico_valor_${i}" value="${valor}" type="number" step="0.01" oninput="calcular()">
-    <input name="servico_qtd_${i}" value="${qtd}" type="number" oninput="calcular()">
-    <button type="button" onclick="removerItem(this)">❌</button>
-    <span class="total_item"></span>
-    `;
-    servicos.appendChild(div);
-}
-
-function calcular(){
-    let total=0;
-
-    document.querySelectorAll("#pecas .item").forEach(i=>{
-        let v=parseFloat(i.querySelector('[name="peca_valor"]').value)||0;
-        let q=parseInt(i.querySelector('[name="peca_qtd"]').value)||0;
-        let t=v*q;
-        total+=t;
-        i.querySelector(".total_item").innerText="R$ "+t.toFixed(2);
-    });
-
-    document.querySelectorAll("#servicos .item").forEach(i=>{
-        let v=parseFloat(i.querySelector('[name^="servico_valor"]').value)||0;
-        let q=parseInt(i.querySelector('[name^="servico_qtd"]').value)||0;
-        let t=v*q;
-        total+=t;
-        i.querySelector(".total_item").innerText="R$ "+t.toFixed(2);
-    });
-
-    total_geral.innerText="TOTAL: R$ "+total.toFixed(2);
-}
-
-function removerItem(b){b.parentElement.remove();calcular();}
-
 // 🔥 WHATSAPP COM DOMÍNIO
 function enviarWhatsApp(){
 
