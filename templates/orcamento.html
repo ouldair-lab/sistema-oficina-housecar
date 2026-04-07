@@ -173,27 +173,31 @@ function addPeca(){
     div.classList.add("linha-item");
 
     div.innerHTML = `
-    <div class="campo">
-        <label>Descrição</label>
-        <input name="peca_nome">
-    </div>
+        <div class="campo-full">
+            <label>Descrição</label>
+            <input name="peca_nome">
+        </div>
 
-    <div class="campo">
-        <label>Qtde</label>
-        <input type="number" name="peca_qtd" value="1" oninput="calcularLinha(this)">
-    </div>
+        <div class="linha-valores">
 
-    <div class="campo">
-        <label>Valor Unit.</label>
-        <input type="number" step="0.01" name="peca_valor" oninput="calcularLinha(this)">
-    </div>
+            <div class="campo">
+                <label>Qtde</label>
+                <input type="number" name="peca_qtd" value="1" oninput="calcularLinha(this)">
+            </div>
 
-    <div class="campo">
-        <label>Total</label>
-        <input type="text" readonly>
-    </div>
+            <div class="campo">
+                <label>Valor Unit.</label>
+                <input type="number" step="0.01" name="peca_valor" oninput="calcularLinha(this)">
+            </div>
 
-    <button type="button" onclick="this.parentElement.remove()">❌</button>
+            <div class="campo">
+                <label>Total</label>
+                <input type="text" readonly>
+            </div>
+
+            <button type="button" onclick="this.closest('.linha-item').remove()">❌</button>
+
+        </div>
     `;
 
     document.getElementById("lista_pecas").appendChild(div);
@@ -206,32 +210,36 @@ function addServico(){
     div.classList.add("linha-item");
 
     div.innerHTML = `
-    <div class="campo">
-        <label>Descrição</label>
-        <input name="servico_nome_${i}">
-    </div>
+        <div class="campo-full">
+            <label>Descrição</label>
+            <input name="servico_nome_${i}">
+        </div>
 
-    <div class="campo">
-        <label>Qtde</label>
-        <input type="number" name="servico_qtd_${i}" value="1" oninput="calcularLinha(this)">
-    </div>
+        <div class="linha-valores">
 
-    <div class="campo">
-        <label>Valor Unit.</label>
-        <input type="number" step="0.01" name="servico_valor_${i}" oninput="calcularLinha(this)">
-    </div>
+            <div class="campo">
+                <label>Qtde</label>
+                <input type="number" name="servico_qtd_${i}" value="1" oninput="calcularLinha(this)">
+            </div>
 
-    <div class="campo">
-        <label>Total</label>
-        <input type="text" readonly>
-    </div>
+            <div class="campo">
+                <label>Valor Unit.</label>
+                <input type="number" step="0.01" name="servico_valor_${i}" oninput="calcularLinha(this)">
+            </div>
 
-    <div class="campo">
-        <label>Comissão</label>
-        <input type="checkbox" name="servico_comissao_${i}">
-    </div>
+            <div class="campo">
+                <label>Total</label>
+                <input type="text" readonly>
+            </div>
 
-    <button type="button" onclick="this.parentElement.remove()">❌</button>
+            <div class="campo">
+                <label>Comissão</label>
+                <input type="checkbox" name="servico_comissao_${i}">
+            </div>
+
+            <button type="button" onclick="this.closest('.linha-item').remove()">❌</button>
+
+        </div>
     `;
 
     document.getElementById("lista_servicos").appendChild(div);
