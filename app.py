@@ -1075,6 +1075,29 @@ def mecanicos():
     dados = listar_mecanicos()
     return render_template("mecanicos.html", mecanicos=dados)
 
+@app.route("/editar_mecanico/<int:id>", methods=["POST"])
+def editar_mecanico(id):
+    if proteger(): return proteger()
+
+    nome = request.form.get("nome")
+    comissao_padrao = float(request.form.get("comissao_padrao"))
+    comissao_baixa = float(request.form.get("comissao_baixa"))
+    limite_baixa = float(request.form.get("limite_baixa"))
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    UPDATE mecanicos
+    SET nome=?, comissao_padrao=?, comissao_baixa=?, limite_baixa=?
+    WHERE id=?
+    """, (nome, comissao_padrao, comissao_baixa, limite_baixa, id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/mecanicos")
+
 @app.route("/excluir_mecanico/<int:id>")
 def excluir_mecanico(id):
     if proteger(): return proteger()

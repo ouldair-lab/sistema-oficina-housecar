@@ -29,6 +29,11 @@
     border: none;
     font-weight: bold;
 }
+
+.form-editar {
+    margin-top: 10px;
+    display: none;
+}
 </style>
 
 </head>
@@ -42,12 +47,11 @@
     <button class="btn-novo" onclick="toggleForm()">+ Mecânico</button>
 </div>
 
-<!-- FORM -->
+<!-- FORM NOVO -->
 <div id="formMecanico" style="display:none;">
 <form method="POST">
 
     <input name="nome" placeholder="Nome" required>
-
     <input name="comissao_padrao" placeholder="Comissão padrão (ex: 0.4)" required>
     <input name="comissao_baixa" placeholder="Comissão baixa (ex: 0.7)" required>
     <input name="limite_baixa" placeholder="Limite (ex: 50)" required>
@@ -68,11 +72,29 @@
 
     <br><br>
 
+    <button onclick="toggleEditar({{ m[0] }})">✏️ Editar</button>
+
     <a href="/excluir_mecanico/{{ m[0] }}"
        onclick="return confirm('Excluir mecânico?')"
        style="color:red;">
        🗑 Excluir
     </a>
+
+    <!-- FORM EDITAR -->
+    <div id="editar{{ m[0] }}" class="form-editar">
+
+        <form method="POST" action="/editar_mecanico/{{ m[0] }}">
+
+            <input name="nome" value="{{ m[1] }}">
+            <input name="comissao_padrao" value="{{ m[2] }}">
+            <input name="comissao_baixa" value="{{ m[3] }}">
+            <input name="limite_baixa" value="{{ m[4] }}">
+
+            <button type="submit">💾 Salvar</button>
+
+        </form>
+
+    </div>
 
 </div>
 {% endfor %}
@@ -80,6 +102,11 @@
 <script>
 function toggleForm(){
     let f = document.getElementById("formMecanico");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+function toggleEditar(id){
+    let f = document.getElementById("editar" + id);
     f.style.display = f.style.display === "none" ? "block" : "none";
 }
 </script>
