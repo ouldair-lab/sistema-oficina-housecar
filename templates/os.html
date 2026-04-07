@@ -134,25 +134,19 @@
     </div>
 </div>
 
-<div class="secao">
-    <div class="secao-topo">
-        <h3>Peças</h3>
-        <button type="button" class="btn-add" onclick="addPeca()">+ Peça</button>
-    </div>
+<h3>🔧 Peças</h3>
 
-    <div id="pecas"></div>
-</div>
+<button type="button" class="btn-novo" onclick="addPeca()">+ Peça</button>
 
-<div class="secao">
-    <div class="secao-topo">
-        <h3>Serviços</h3>
-        <button type="button" class="btn-add" onclick="addServico()">+ Serviço</button>
-    </div>
+<div id="lista_pecas"></div>
 
-    <div id="servicos"></div>
-</div>
+<h3>🛠 Serviços</h3>
 
-<h2 id="total_geral">TOTAL: R$ {{ total }}</h2>
+<button type="button" class="btn-novo" onclick="addServico()">+ Serviço</button>
+
+<div id="lista_servicos"></div>
+
+<h3>TOTAL: R$ <span id="total_geral">0.00</span></h3>
 
 <div class="secao">
     <div class="campo">
@@ -183,97 +177,132 @@
 </script>
 
 <script>
-function addPeca(nome="", valor="", qtd=1) {
+function addPeca(){
     let div = document.createElement("div");
-    div.classList.add("item");
+    div.classList.add("linha-item");
 
     div.innerHTML = `
-        <div class="linha-item">
-            <input type="text" name="peca_nome" value="${nome}" placeholder="Nome da peça">
-            <input type="number" name="peca_valor" value="${valor}" step="0.01" oninput="calcular()">
-            <input type="number" name="peca_qtd" value="${qtd}" oninput="calcular()">
-            <button type="button" onclick="removerItem(this)">❌</button>
+        <div class="campo-full">
+            <label>Descrição</label>
+            <input name="peca_nome">
         </div>
-        <span class="total_item">Total: R$ 0</span>
+
+        <div class="linha-valores">
+
+            <div class="item-campo">
+                <label>Qtde</label>
+                <input type="number" name="peca_qtd" value="1" oninput="calcularLinha(this)">
+            </div>
+
+            <div class="item-campo">
+                <label>Valor Unit.</label>
+                <input type="number" step="0.01" name="peca_valor" oninput="calcularLinha(this)">
+            </div>
+
+            <div class="item-campo">
+                <label>Total</label>
+                <input type="text" readonly>
+            </div>
+
+            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">
+            🗑 Excluir
+            </button>
+
+        </div>
     `;
-    document.getElementById("pecas").appendChild(div);
+
+    document.getElementById("lista_pecas").appendChild(div);
 }
 
-let contadorServico = 0;
-
-function addServico(nome="", valor="", qtd=1, comissao=true) {
-    let index = contadorServico++;
+function addServico(){
+    let i = indexServico++;
 
     let div = document.createElement("div");
-    div.classList.add("item");
+    div.classList.add("linha-item");
 
     div.innerHTML = `
-        <div class="linha-item">
-            <input type="text" name="servico_nome_${index}" value="${nome}">
-            <input type="number" name="servico_valor_${index}" value="${valor}" step="0.01" oninput="calcular()">
-            <input type="number" name="servico_qtd_${index}" value="${qtd}" oninput="calcular()">
-            <label>
-                <input type="checkbox" name="servico_comissao_${index}" ${comissao ? "checked" : ""}>
-                Comissão
-            </label>
-            <button type="button" onclick="removerItem(this)">❌</button>
+        <div class="campo-full">
+            <label>Descrição</label>
+            <input name="servico_nome_${i}">
         </div>
-        <span class="valor_comissao">Comissão: R$ 0,00</span>
-        <span class="total_item">Total: R$ 0</span>
+
+        <div class="linha-valores">
+
+            <div class="item-campo">
+                <label>Qtde</label>
+                <input type="number" name="servico_qtd_${i}" value="1" oninput="calcularLinha(this)">
+            </div>
+
+            <div class="item-campo">
+                <label>Valor Unit.</label>
+                <input type="number" step="0.01" name="servico_valor_${i}" oninput="calcularLinha(this)">
+            </div>
+
+            <div class="item-campo">
+                <label>Total</label>
+                <input type="text" readonly>
+            </div>
+
+            <div class="item-campo">
+                <label>Comissão</label>
+                <input type="checkbox" name="servico_comissao_${i}">
+            </div>
+
+            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">
+            🗑 Excluir
+            </button>
+
+        </div>
     `;
-    document.getElementById("servicos").appendChild(div);
+
+    document.getElementById("lista_servicos").appendChild(div);
 }
 
-function calcular() {
-    let totalGeral = 0;
+function calcularLinha(el){
+    let linha = el.closest('.linha-item');
 
-    document.querySelectorAll("#pecas .item").forEach(item => {
-        let valor = parseFloat(item.querySelector('[name="peca_valor"]').value) || 0;
-        let qtd = parseInt(item.querySelector('[name="peca_qtd"]').value) || 0;
-        let total = valor * qtd;
+    let qtd = linha.querySelector('input[name*="qtd"]');
+    let valor = linha.querySelector('input[name*="valor"]');
+    let total = linha.querySelector('input[readonly]');
 
-        item.querySelector(".total_item").innerText =
-            "Total: R$ " + total.toFixed(2).replace(".", ",");
+    let q = parseFloat(qtd.value || 0);
+    let v = parseFloat(valor.value || 0);
 
-        totalGeral += total;
-    });
+    let resultado = q * v;
 
-    document.querySelectorAll("#servicos .item").forEach(item => {
-        let valor = parseFloat(item.querySelector('[name^="servico_valor_"]').value) || 0;
-        let qtd = parseInt(item.querySelector('[name^="servico_qtd_"]').value) || 0;
-        let check = item.querySelector('input[type="checkbox"]');
+    total.value = resultado.toFixed(2);
 
-        let total = valor * qtd;
-
-        item.querySelector(".total_item").innerText =
-            "Total: R$ " + total.toFixed(2).replace(".", ",");
-
-        let comissao = check.checked ? (total <= 50 ? total * 0.7 : total * 0.4) : 0;
-
-        item.querySelector(".valor_comissao").innerText =
-            "Comissão: R$ " + comissao.toFixed(2).replace(".", ",");
-
-        totalGeral += total;
-    });
-
-    document.getElementById("total_geral").innerText =
-        "TOTAL: R$ " + totalGeral.toFixed(2).replace(".", ",");
+    calcularTotalGeral();
 }
 
-function removerItem(btn) {
-    btn.parentElement.remove();
-    calcular();
-}
+window.onload = function(){
 
-window.onload = function() {
     let pecas = JSON.parse('{{ pecas | tojson | safe }}');
-    pecas.forEach(p => addPeca(p[0], p[1], p[2]));
+    pecas.forEach(p => {
+        addPeca();
+        let ultima = document.querySelector('#lista_pecas .linha-item:last-child');
+
+        ultima.querySelector('[name="peca_nome"]').value = p[0];
+        ultima.querySelector('[name="peca_valor"]').value = p[1];
+        ultima.querySelector('[name="peca_qtd"]').value = p[2];
+
+        calcularLinha(ultima);
+    });
 
     let servicos = JSON.parse('{{ servicos | tojson | safe }}');
-    servicos.forEach(s => addServico(s[0], s[1], s[2], s[3]));
+    servicos.forEach(s => {
+        addServico();
+        let ultima = document.querySelector('#lista_servicos .linha-item:last-child');
 
-    calcular();
-};
+        ultima.querySelector('[name^="servico_nome"]').value = s[0];
+        ultima.querySelector('[name^="servico_valor"]').value = s[1];
+        ultima.querySelector('[name^="servico_qtd"]').value = s[2];
+        ultima.querySelector('[type="checkbox"]').checked = s[3];
+
+        calcularLinha(ultima);
+    });
+
+}
 </script>
 
 </body>

@@ -321,7 +321,8 @@ def os():
 @app.route("/os_lista")
 def os_lista():
     if proteger(): return proteger()
-    busca = request.args.get("busca", "").strip()
+
+    busca = request.args.get("busca", "").strip().lower()
 
     conn = conectar()
     cursor = conn.cursor()
@@ -347,25 +348,31 @@ def os_lista():
         ) as comissao_total
     FROM ordens o
     LEFT JOIN itens i ON o.id = i.ordem_id
+    WHERE o.status != 'FINALIZADA'
     """
 
-    params = [
-        CONFIG["limite_servico_baixo"],
-        CONFIG["comissao_servico_baixo"],
-        CONFIG["comissao_padrao"]
-    ]
+    params = []
 
     if busca:
-        query += " WHERE LOWER(o.cliente) LIKE ? OR LOWER(o.placa) LIKE ?"
-        busca_like = f"%{busca.lower()}%"
+        query += " AND (LOWER(o.cliente) LIKE ? OR LOWER(o.placa) LIKE ?)"
+        busca_like = f"%{busca}%"
         params.extend([busca_like, busca_like])
 
-    query += " GROUP BY o.id ORDER BY o.id DESC"
+    query += """
+    GROUP BY o.id
+    ORDER BY 
+        CASE 
+            WHEN o.status = 'EM ANDAMENTO' THEN 1
+            WHEN o.status = 'PENDENTE' THEN 2
+            WHEN o.status = 'AGUARDANDO PEÇAS' THEN 3
+            ELSE 4
+        END,
+        o.id DESC
+    """
 
-    cursor.execute(query)
+    cursor.execute(query, params)
 
     ordens = cursor.fetchall()
-    conn.commit()
     conn.close()
 
     return render_template("os_lista.html", ordens=ordens, busca=busca)
