@@ -109,29 +109,6 @@ th {
     color: white;
 }
 
-/* 🔷 LINHA DOS ITENS */
-.linha-item {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.linha-item input[type="text"] { flex: 3; }
-.linha-item input[type="number"] { flex: 1; }
-
-.linha-item button {
-    width: auto;
-    padding: 6px 10px;
-}
-
-.linha-item label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-}
-
 /* 🔷 TOPO DAS SEÇÕES */
 .secao-topo {
     display: flex;
@@ -320,27 +297,40 @@ button {
 
 .linha-item {
     background: rgba(255,255,255,0.05);
-    padding: 10px;
+    padding: 12px;
     border-radius: 10px;
     margin-top: 10px;
+}
+
+/* DESCRIÇÃO */
+.campo-full {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
 }
 
 .campo-full input {
     width: 100%;
 }
 
+/* LINHA DE VALORES (PC) */
 .linha-valores {
     display: grid;
-    grid-template-columns: 80px 120px 120px 100px auto;
+    grid-template-columns: 80px 120px 120px 100px 50px;
     gap: 10px;
     align-items: end;
 }
 
-.campo {
+/* CAMPOS */
+.item-campo {
     display: flex;
     flex-direction: column;
     font-size: 12px;
-    flex: 1;
+}
+
+/* BOTÃO X */
+.linha-valores button {
+    height: 40px;
 }
 
 /* MOBILE */
