@@ -72,7 +72,7 @@
 
     <br><br>
 
-    <button onclick="toggleEditar({{ m[0] }})">✏️ Editar</button>
+    <button data-id="{{ m[0] }}" onclick="toggleEditar(this)">✏️ Editar</button>
 
     <a href="/excluir_mecanico/{{ m[0] }}"
        onclick="return confirm('Excluir mecânico?')"
@@ -105,7 +105,8 @@ function toggleForm(){
     f.style.display = f.style.display === "none" ? "block" : "none";
 }
 
-function toggleEditar(id){
+function toggleEditar(btn){
+    let id = btn.getAttribute("data-id");
     let f = document.getElementById("editar" + id);
     f.style.display = f.style.display === "none" ? "block" : "none";
 }
