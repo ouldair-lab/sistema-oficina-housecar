@@ -229,7 +229,7 @@ def orcamento():
             total=total
         )
 
-    return render_template("orcamento.html")
+    return render_template("orcamento.html", mecanicos=mecanicos)
 
 @app.route("/aprovar_orcamento/<int:id>")
 def aprovar_orcamento(id):
