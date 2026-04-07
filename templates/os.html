@@ -66,7 +66,6 @@
 
 <body>
 
-<!-- HEADER PADRÃO -->
 {% include "_header.html" %}
 
 <form method="POST" action="/atualizar_os">
@@ -115,7 +114,6 @@
                     {{ m[1] }}
                 </option>
             {% endfor %}
-
         </select>
     </div>
 </div>
@@ -161,13 +159,11 @@
 </div>
 
 <div class="botoes">
-
     <button type="submit" class="btn-principal">💾 Atualizar OS</button>
 
     {% if status == "FINALIZADA" %}
     <a href="/gerar_nota/{{ id }}" class="btn-secundario" target="_blank">📄 Abrir Nota</a>
     {% endif %}
-
 </div>
 
 </form>
@@ -202,7 +198,7 @@ function addPeca(){
                 <input type="text" readonly>
             </div>
 
-            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">
+            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove(); calcularTotalGeral();">
             🗑 Excluir
             </button>
 
@@ -246,7 +242,7 @@ function addServico(){
                 <input type="checkbox" name="servico_comissao_${i}">
             </div>
 
-            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">
+            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove(); calcularTotalGeral();">
             🗑 Excluir
             </button>
 
@@ -271,6 +267,22 @@ function calcularLinha(el){
     total.value = resultado.toFixed(2);
 
     calcularTotalGeral();
+}
+
+function calcularTotalGeral(){
+    let total = 0;
+
+    document.querySelectorAll('#lista_pecas .linha-item').forEach(linha => {
+        let t = linha.querySelector('input[readonly]').value;
+        total += parseFloat(t || 0);
+    });
+
+    document.querySelectorAll('#lista_servicos .linha-item').forEach(linha => {
+        let t = linha.querySelector('input[readonly]').value;
+        total += parseFloat(t || 0);
+    });
+
+    document.getElementById("total_geral").innerText = total.toFixed(2);
 }
 
 window.onload = function(){
@@ -300,6 +312,9 @@ window.onload = function(){
         calcularLinha(ultima);
     });
 
+    // 🔥 CORREÇÕES IMPORTANTES
+    indexServico = servicos.length;
+    calcularTotalGeral();
 }
 </script>
 
