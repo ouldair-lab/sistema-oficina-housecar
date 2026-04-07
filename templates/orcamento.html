@@ -142,11 +142,7 @@
 
         </select>
     </div>
-
-    <div class="item-campo">
-        <label>Comissão</label>
-        <input type="checkbox" name="servico_comissao_${i}">
-    </div>
+    
 </div>
 
 <h3>🔧 Peças</h3>
@@ -200,7 +196,7 @@ function addPeca(){
                 <input type="text" readonly>
             </div>
 
-            <button type="button" onclick="this.closest('.linha-item').remove()">❌</button>
+            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">❌</button>
 
         </div>
     `;
@@ -242,7 +238,7 @@ function addServico(){
                 <input type="checkbox" name="servico_comissao_${i}">
             </div>
 
-            <button type="button" onclick="this.closest('.linha-item').remove()">❌</button>
+            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">❌</button>
 
         </div>
     `;
