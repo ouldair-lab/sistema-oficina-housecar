@@ -39,6 +39,16 @@ body {
     color: #000;
 }
 
+.linha-valores input {
+    width: auto !important;
+}
+
+.linha-valores input[type="number"],
+.linha-valores input[type="text"] {
+    width: 100%;
+    max-width: 100%;
+}
+
 /* 🔷 BOTÕES */
 button {
     background: #1e3a8a;
