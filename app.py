@@ -49,7 +49,7 @@ app.secret_key = "housecar_secreta_123"
 
 # 🔐 USUÁRIO SIMPLES
 USUARIO = "admin"
-SENHA = "Abc1234"
+SENHA = "Abcd1234"
 
 # 🔐 PROTEÇÃO
 def proteger():
