@@ -113,6 +113,8 @@ def financeiro():
 @app.route("/orcamento", methods=["GET", "POST"])
 def orcamento():
     if proteger(): return proteger()
+
+    mecanicos = listar_mecanicos()
     
     if request.method == "POST":
         cliente = request.form.get("cliente")
@@ -212,8 +214,7 @@ def orcamento():
             ))
 
         conn.commit()
-        conn.close()
-        mecanicos = listar_mecanicos()
+        conn.close()        
 
         return render_template(
             "ficha.html",
