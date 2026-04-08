@@ -417,22 +417,23 @@ def abrir_os(id):
     # 🆕 NOVA OS (quando clica em + Nova OS)
     if id == 0:
         return render_template(
-            "os.html",
-            id=0,
-            cliente="",
-            veiculo="",
-            placa="",
-            data_entrada="",
-            data_saida="",
-            mecanico="",
-            problema="",
-            diagnostico="",
-            total=0,
-            status="EM ANDAMENTO",
-            pecas=[],
-            servicos=[],
-            mecanicos=mecanicos
-        )
+        "os.html",
+        id=0,
+        cliente="",
+        veiculo="",
+        placa="",
+        data_entrada="",
+        data_saida="",
+        mecanico="",
+        problema="",
+        diagnostico="",
+        total=0,
+        status="EM ANDAMENTO",
+        tipo="os",
+        pecas=[],
+        servicos=[],
+        mecanicos=mecanicos
+    )
 
     conn = conectar()
     cursor = conn.cursor()

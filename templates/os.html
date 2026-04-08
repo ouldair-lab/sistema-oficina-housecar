@@ -91,6 +91,8 @@
     </div>
 </div>
 
+{% if tipo == 'os' %}
+
 <div class="secao">
     <h3>Datas e Responsável</h3>
 
@@ -117,6 +119,37 @@
         </select>
     </div>
 </div>
+
+{% else %}
+
+<div class="secao">
+    <h3>Orçamento</h3>
+
+    <div class="campo">
+        <label>Data do Orçamento:</label>
+        <input type="text" value="{{ data_entrada }}" readonly>
+    </div>
+
+    <div class="campo">
+        <label>Validade:</label>
+        <input type="text" value="5 dias" readonly>
+    </div>
+
+    <div class="campo">
+        <label>Mecânico:</label>
+        <select name="mecanico">
+            <option value="">Selecione</option>
+
+            {% for m in mecanicos %}
+                <option value="{{ m[1] }}" {% if mecanico == m[1] %}selected{% endif %}>
+                    {{ m[1] }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+{% endif %}
 
 <div class="secao">
     <h3>Diagnóstico</h3>
