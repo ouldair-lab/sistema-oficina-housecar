@@ -917,6 +917,8 @@ def despesas():
     total_debito = sum([d[2] for d in dados if d[3] == "DÉBITO" and d[4] == "PAGO"])
     total_credito = sum([d[2] for d in dados if d[3] == "CRÉDITO" and d[4] == "PAGO"])
 
+    from datetime import datetime
+
     return render_template(
         "despesas.html",
         despesas=dados,
@@ -924,7 +926,8 @@ def despesas():
         total_pix=total_pix,
         total_dinheiro=total_dinheiro,
         total_debito=total_debito,
-        total_credito=total_credito
+        total_credito=total_credito,
+        hoje=datetime.now().strftime("%Y-%m-%d")  # 🔥 IMPORTANTE
     )
 
 

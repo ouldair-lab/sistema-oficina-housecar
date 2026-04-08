@@ -113,13 +113,13 @@
 <div class="lista">
 {% for d in despesas %}
 
-{% set hoje = now().date() %}
+{% set hoje = hoje %}
 {% set venc = d[6] %}
 
 {% set classe = "" %}
 {% if venc %}
     {% set data_venc = venc %}
-    {% if data_venc < hoje|string %}
+    {% if data_venc < hoje %}
         {% set classe = "atrasado" %}
     {% endif %}
 {% endif %}
@@ -135,7 +135,7 @@
     <div><b>Status:</b> {{ d[4] }}</div>
 
     {% if d[6] %}
-    <div>📅 Vencimento: {{ d[6] }}</div>
+    <div>📅 Vencimento: {{ d[6][8:10] }}/{{ d[6][5:7] }}/{{ d[6][0:4] }}</div>
     {% endif %}
 
     <div style="font-size:12px;">{{ d[5] }}</div>
