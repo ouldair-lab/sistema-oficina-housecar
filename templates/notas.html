@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Notas Geradas</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+.lista {
+    margin-top: 20px;
+}
+
+.item {
+    background: #1e3a8a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+a {
+    color: #06d6a0;
+    text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+{% include "_header.html" %}
+
+<h2>📁 Notas Geradas</h2>
+
+<div class="lista">
+
+{% for arq in arquivos %}
+<div class="item">
+    📄 {{ arq }}
+    <br>
+    <a href="/abrir_nota/{{ arq }}" target="_blank">Abrir</a>
+</div>
+{% endfor %}
+
+</div>
+
+</body>
+</html>
