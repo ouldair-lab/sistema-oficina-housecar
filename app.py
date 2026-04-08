@@ -252,7 +252,6 @@ def aprovar_orcamento(id):
     <p>Em breve entraremos em contato.</p>
     """
 
-
 @app.route("/os", methods=["POST"])
 def os():
     if proteger(): return proteger()
@@ -318,6 +317,26 @@ def os():
         pecas=pecas,
         servicos=servicos
     )
+
+@app.route("/orcamentos")
+def orcamentos():
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT id, cliente, veiculo, placa, total, status, mecanico
+    FROM ordens
+    WHERE tipo = 'orcamento'
+    AND status != 'CANCELADA'
+    ORDER BY id DESC
+    """)
+
+    dados = cursor.fetchall()
+    conn.close()
+
+    return render_template("orcamentos.html", ordens=dados)
 
 @app.route("/os_lista")
 def os_lista():
