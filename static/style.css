@@ -135,3 +135,17 @@ button:hover {
         grid-template-columns: 1fr;
     }
 }
+
+.btn-logout {
+    background: #dc2626;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-logout:hover {
+    background: #b91c1c;
+}

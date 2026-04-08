@@ -67,11 +67,36 @@ def login():
         usuario = request.form.get("usuario")
         senha = request.form.get("senha")
 
-        if usuario == USUARIO and senha == SENHA:
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT id, nome, tipo FROM usuarios
+        WHERE login = ? AND senha = ?
+        """, (usuario, senha))
+
+        user = cursor.fetchone()
+        conn.close()
+
+        # 🔥 PRIORIDADE: BANCO
+        if user:
             session["logado"] = True
-            return redirect("/painel")  # 🔥 AJUSTADO AQUI
+            session["usuario_id"] = user[0]
+            session["usuario_nome"] = user[1]
+            session["usuario_tipo"] = user[2]
+
+            return redirect("/painel")
+
+        # 🔥 FALLBACK (TEMPORÁRIO)
+        elif usuario == USUARIO and senha == SENHA:
+            session["logado"] = True
+            session["usuario_nome"] = "Administrador"
+            session["usuario_tipo"] = "admin"
+
+            return redirect("/painel")
+
         else:
-            return "Login inválido"
+            return render_template("login.html", erro="Usuário ou senha inválidos")
 
     return render_template("login.html")
 
