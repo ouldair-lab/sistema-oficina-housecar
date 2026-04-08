@@ -11,6 +11,7 @@ from banco import criar_tabela_mecanicos
 from banco import listar_mecanicos
 from banco import criar_tabela_pagamentos
 from banco import criar_tabela_usuarios
+from banco import criar_admin_padrao
 
 def iniciar_banco():
     criar_tabelas()
@@ -20,6 +21,7 @@ def iniciar_banco():
     criar_tabela_mecanicos()
     criar_tabela_pagamentos()
     criar_tabela_usuarios()
+    criar_admin_padrao()
 
 CONFIG = {
     "comissao_padrao": 0.4,

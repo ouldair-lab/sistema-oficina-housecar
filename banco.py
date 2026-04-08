@@ -21,6 +21,24 @@ def criar_tabela_usuarios():
     conn.commit()
     conn.close()
 
+def criar_admin_padrao():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM usuarios WHERE login = 'admin'")
+    usuario = cursor.fetchone()
+
+    if not usuario:
+        cursor.execute("""
+        INSERT INTO usuarios (nome, login, senha, tipo)
+        VALUES (?, ?, ?, ?)
+        """, ("Administrador", "admin", "1234", "admin"))
+
+        print("✅ Usuário admin criado: login=admin senha=1234")
+
+    conn.commit()
+    conn.close()
+
 
 def criar_tabelas():
     conn = conectar()
