@@ -69,6 +69,10 @@
 
 <div class="container">
 
+    {% if session["usuario_tipo"] == "admin" %}
+        <a href="/usuarios" class="btn-menu">👥 Usuários</a>
+    {% endif %}
+
     <a href="/orcamento" class="btn-menu">📄 Criar Orçamento</a>
 
     <a href="/orcamentos" class="btn-menu">📑 Lista Orçamentos</a>
@@ -81,7 +85,9 @@
 
     <a href="/clientes" class="btn-menu">👤 Clientes</a>
     
-    <a href="/mecanicos" class="btn-menu">👤 Mecânicos</a>
+    {% if session["usuario_tipo"] == "admin" %}
+        <a href="/mecanicos" class="btn-menu">👤 Mecânicos</a>
+    {% endif %}
 
     <a href="/estoque" class="btn-menu">📦 Estoque</a>
 

@@ -92,6 +92,40 @@ def logout():
     session.clear()
     return redirect("/login")
 
+@app.route("/usuarios", methods=["GET", "POST"])
+def usuarios():
+    if proteger(): return proteger()
+
+    # 🔐 só admin acessa
+    if session.get("usuario_tipo") != "admin":
+        return "Acesso restrito"
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        nome = request.form.get("nome")
+        login = request.form.get("login")
+        senha = request.form.get("senha")
+        tipo = request.form.get("tipo")
+
+        try:
+            cursor.execute("""
+            INSERT INTO usuarios (nome, login, senha, tipo)
+            VALUES (?, ?, ?, ?)
+            """, (nome, login, senha, tipo))
+
+            conn.commit()
+        except:
+            return "Erro: login já existe"
+
+    cursor.execute("SELECT id, nome, login, tipo FROM usuarios")
+    lista = cursor.fetchall()
+
+    conn.close()
+
+    return render_template("usuarios.html", usuarios=lista)
+
 from banco import total_receitas_recebidas, total_despesas_pagas
 from banco import aniversariantes_hoje
 
@@ -1202,6 +1236,8 @@ from banco import inserir_mecanico, listar_mecanicos
 @app.route("/mecanicos", methods=["GET", "POST"])
 def mecanicos():
     if proteger(): return proteger()
+    if session.get("usuario_tipo") != "admin":
+        return "Acesso restrito ao administrador"
 
     if request.method == "POST":
         nome = request.form.get("nome")
