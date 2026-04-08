@@ -325,6 +325,17 @@ def orcamentos():
     conn = conectar()
     cursor = conn.cursor()
 
+    from datetime import datetime, timedelta
+
+    limite = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
+
+    cursor.execute("""
+    DELETE FROM ordens
+    WHERE tipo = 'orcamento'
+    AND status = 'PENDENTE'
+    AND DATE(data_entrada) < DATE(?)
+    """, (limite,))
+
     cursor.execute("""
     SELECT id, cliente, veiculo, placa, total, status, mecanico
     FROM ordens
