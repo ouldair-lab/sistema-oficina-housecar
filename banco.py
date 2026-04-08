@@ -4,6 +4,23 @@ import sqlite3
 def conectar():
     return sqlite3.connect("oficina.db")
 
+def criar_tabela_usuarios():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT,
+        login TEXT UNIQUE,
+        senha TEXT,
+        tipo TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
 
 def criar_tabelas():
     conn = conectar()
