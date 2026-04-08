@@ -306,17 +306,20 @@ def os():
         total += s[1] * s[2]
 
     return render_template(
-        "os.html",
-        cliente=cliente,
-        veiculo=veiculo,
-        placa=placa,
-        mecanico=mecanico,
-        problema=problema,
-        diagnostico=diagnostico,
-        total=total,
-        pecas=pecas,
-        servicos=servicos
-    )
+    "os.html",
+    cliente=cliente,
+    veiculo=veiculo,
+    placa=placa,
+    mecanico=mecanico,
+    problema=problema,
+    diagnostico=diagnostico,
+    total=total,
+    pecas=pecas,
+    servicos=servicos,
+    tipo="orcamento",  # 🔥 ESSENCIAL
+    status="PENDENTE",
+    data_entrada=datetime.now().strftime("%Y-%m-%d")
+)
 
 @app.route("/orcamentos")
 def orcamentos():

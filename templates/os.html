@@ -127,7 +127,7 @@
 
     <div class="campo">
         <label>Data do Orçamento:</label>
-        <input type="text" value="{{ data_entrada }}" readonly>
+        <input type="text" value="{{ data_entrada[8:10] }}/{{ data_entrada[5:7] }}/{{ data_entrada[0:4] }}" readonly>
     </div>
 
     <div class="campo">
