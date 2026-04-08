@@ -16,6 +16,8 @@
 
 <form method="POST">
 
+<input type="hidden" id="orcamento_id" value="{{ id }}">
+
 <div class="secao">
     <h3>Cliente</h3>
 
@@ -84,7 +86,7 @@
 
 <div class="botoes">
     <button class="btn">💾 Salvar Orçamento</button>
-    <button class="btn-zap">📲 Enviar WhatsApp</button>
+    <button type="button" class="btn-zap" onclick="enviarWhatsApp()">📲 Enviar WhatsApp</button>
 </div>
 
 </form>
@@ -233,13 +235,15 @@ function enviarWhatsApp(){
     let tel = telefone.value.replace(/\D/g,"");
     if(!tel){ alert("Informe telefone"); return; }
 
+    let id = document.getElementById("orcamento_id").value;
+
     let msg = `Orçamento House Car\n\n`;
     msg += `Cliente: ${cliente.value}\n`;
     msg += `Veículo: ${veiculo.value} - ${placa.value}\n\n`;
 
-    msg += `${total_geral.innerText}\n\n`;
+    msg += `Total: R$ ${total_geral.innerText}\n\n`;
 
-    msg += `👉 Aprovar:\nhttps://housecaroficinamecanica.com.br/aprovar_orcamento/ID_AQUI`;
+    msg += `👉 Aprovar:\nhttps://housecaroficinamecanica.com.br/aprovar_orcamento/${id}`;
 
     let url = `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`;
     window.open(url,"_blank");
