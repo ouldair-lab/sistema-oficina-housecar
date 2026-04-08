@@ -890,6 +890,9 @@ from banco import (
 @app.route("/despesas", methods=["GET", "POST"])
 def despesas():
     if proteger(): return proteger()
+
+    from datetime import datetime
+
     if request.method == "POST":
         descricao = request.form.get("descricao")
         valor = float(request.form.get("valor") or 0)
