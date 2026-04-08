@@ -348,7 +348,7 @@ def os_lista():
         ) as comissao_total
     FROM ordens o
     LEFT JOIN itens i ON o.id = i.ordem_id
-    WHERE o.status != 'FINALIZADA'
+    WHERE o.status != 'CANCELADA'
     """
 
     params = []
@@ -545,6 +545,30 @@ def atualizar_os():
             valor_os=total,
             data=datetime.now().strftime("%d/%m/%Y %H:%M")
         )
+
+    return redirect("/os_lista")
+
+@app.route("/cancelar_os/<int:id>")
+def cancelar_os(id):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # Cancela OS
+    cursor.execute("""
+    UPDATE ordens
+    SET status = 'CANCELADA'
+    WHERE id = ?
+    """, (id,))
+
+    # Cancela receita vinculada
+    cursor.execute("""
+    UPDATE receitas
+    SET status = 'CANCELADO'
+    WHERE ordem_id = ?
+    """, (id,))
+
+    conn.commit()
+    conn.close()
 
     return redirect("/os_lista")
 
