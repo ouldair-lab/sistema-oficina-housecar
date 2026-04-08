@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orçamentos</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+.tabela-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #1e3a8a;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+.topo-padrao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.btn-add {
+    background: #06d6a0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+}
+
+.btn-add:hover {
+    background: #05b386;
+}
+
+.btn-acao {
+    background: #16a34a;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-acao:hover {
+    background: #15803d;
+}
+</style>
+
+</head>
+
+<body>
+
+{% include "_header.html" %}
+
+<div class="topo-padrao">
+    <h3>📄 Orçamentos</h3>
+    <a href="/orcamento" class="btn-add">+ Novo Orçamento</a>
+</div>
+
+<div class="tabela-container">
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Veículo</th>
+        <th>Placa</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Mecânico</th>
+        <th>Ações</th>
+    </tr>
+
+    {% for o in ordens %}
+    <tr>
+        <td>{{ o[0] }}</td>
+        <td>{{ o[1] }}</td>
+        <td>{{ o[2] }}</td>
+        <td>{{ o[3] }}</td>
+        <td>R$ {{ "%.2f"|format(o[4]) }}</td>
+        <td>{{ o[5] }}</td>
+        <td>{{ o[6] }}</td>
+
+        <td>
+            <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+</body>
+</html>
