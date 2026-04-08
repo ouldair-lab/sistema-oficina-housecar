@@ -54,6 +54,12 @@ button {
     font-weight: bold;
 }
 
+.erro-login {
+    background: rgba(255, 77, 77, 0.1);
+    padding: 8px;
+    border-radius: 6px;
+}
+
 /* MOBILE EXTRA */
 @media (max-width: 480px) {
     .login-box {
@@ -85,15 +91,15 @@ button {
 
         <button type="submit">Entrar</button>
 
+        {% if erro %}
+            <div style="color:#ff4d4d; margin-top:10px;">
+                {{ erro }}
+            </div>
+        {% endif %}
+
     </form>
 
 </div>
-
-{% if erro %}
-    <div style="color:#ff4d4d; margin-top:10px;">
-        {{ erro }}
-    </div>
-{% endif %}
 
 </body>
 </html>

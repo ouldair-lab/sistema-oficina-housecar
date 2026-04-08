@@ -51,10 +51,6 @@ def add_header(response):
 # 🔐 CHAVE SECRETA
 app.secret_key = "housecar_secreta_123"
 
-# 🔐 USUÁRIO SIMPLES
-USUARIO = "admin"
-SENHA = "Abcd1234"
-
 # 🔐 PROTEÇÃO
 def proteger():
     if not session.get("logado"):
@@ -78,7 +74,6 @@ def login():
         user = cursor.fetchone()
         conn.close()
 
-        # 🔥 PRIORIDADE: BANCO
         if user:
             session["logado"] = True
             session["usuario_id"] = user[0]
@@ -86,15 +81,6 @@ def login():
             session["usuario_tipo"] = user[2]
 
             return redirect("/painel")
-
-        # 🔥 FALLBACK (TEMPORÁRIO)
-        elif usuario == USUARIO and senha == SENHA:
-            session["logado"] = True
-            session["usuario_nome"] = "Administrador"
-            session["usuario_tipo"] = "admin"
-
-            return redirect("/painel")
-
         else:
             return render_template("login.html", erro="Usuário ou senha inválidos")
 
