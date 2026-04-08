@@ -308,8 +308,9 @@ def listar_ordens():
         status,
         mecanico,
         total  -- usado como base de comissão (temporário)
-    FROM ordens
-    ORDER BY id DESC
+        FROM ordens
+        WHERE tipo = 'os'
+        ORDER BY id DESC
     """)
 
     dados = cursor.fetchall()

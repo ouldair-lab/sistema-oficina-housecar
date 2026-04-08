@@ -186,9 +186,9 @@ def orcamento():
         cursor = conn.cursor()
 
         cursor.execute("""
-        INSERT INTO ordens (cliente, veiculo, placa, problema, diagnostico, total, tipo, mecanico)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (cliente, veiculo, placa, problema, diagnostico, total, "orcamento", mecanico))
+            INSERT INTO ordens (cliente, veiculo, placa, problema, diagnostico, total, tipo, status, mecanico)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (cliente, veiculo, placa, problema, diagnostico, total, "orcamento", "PENDENTE", mecanico))
 
         ordem_id = cursor.lastrowid
 
