@@ -615,10 +615,28 @@ def gerar_nota(id):
     data_saida_fmt = formatar_data(data_saida)
 
     import re
-    nome_arquivo = re.sub(r'[^a-zA-Z0-9]', '_', f"{cliente}_{placa}")
 
-    os.makedirs("notas", exist_ok=True)
-    caminho = f"notas/{nome_arquivo}.pdf"
+    def limpar_texto(txt):
+        return re.sub(r'[^a-zA-Z0-9]', '_', txt or "")
+
+    cliente_limpo = limpar_texto(cliente)
+    placa_limpa = limpar_texto(placa)
+
+    nome_arquivo = f"OS_{id}_{cliente_limpo}_{placa_limpa}.pdf"
+
+    pasta = "notas"
+    os.makedirs(pasta, exist_ok=True)
+
+    caminho_base = os.path.join(pasta, nome_arquivo)
+
+    # 🔥 EVITA SOBRESCREVER
+    contador = 1
+    caminho = caminho_base
+
+    while os.path.exists(caminho):
+        nome_sem_ext = nome_arquivo.replace(".pdf", "")
+        caminho = os.path.join(pasta, f"{nome_sem_ext}_{contador}.pdf")
+        contador += 1
 
     c = canvas.Canvas(caminho, pagesize=A4)
     largura, altura = A4
@@ -765,6 +783,23 @@ def gerar_nota(id):
     c.save()
 
     return send_file(caminho, as_attachment=False)
+
+@app.route("/notas")
+def listar_notas():
+    if proteger(): return proteger()
+
+    pasta = "notas"
+    arquivos = []
+
+    if os.path.exists(pasta):
+        arquivos = os.listdir(pasta)
+
+    return render_template("notas.html", arquivos=arquivos)
+
+@app.route("/notas/<nome>")
+def abrir_nota(nome):
+    if proteger(): return proteger()
+    return send_file(f"notas/{nome}")
 
 
 from banco import listar_receitas, inserir_receita
