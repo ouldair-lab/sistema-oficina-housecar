@@ -417,35 +417,35 @@ def abrir_os(id):
     # 🆕 NOVA OS (quando clica em + Nova OS)
     if id == 0:
         return render_template(
-        "os.html",
-        id=0,
-        cliente="",
-        veiculo="",
-        placa="",
-        data_entrada="",
-        data_saida="",
-        mecanico="",
-        problema="",
-        diagnostico="",
-        total=0,
-        status="EM ANDAMENTO",
-        tipo="os",
-        pecas=[],
-        servicos=[],
-        mecanicos=mecanicos
-    )
+            "os.html",
+            id=0,
+            cliente="",
+            veiculo="",
+            placa="",
+            data_entrada="",
+            data_saida="",
+            mecanico="",
+            problema="",
+            diagnostico="",
+            total=0,
+            status="EM ANDAMENTO",
+            tipo="os",
+            pecas=[],
+            servicos=[],
+            mecanicos=mecanicos
+        )
 
     conn = conectar()
     cursor = conn.cursor()
 
-    # Dados principais
+    # 🔥 AGORA TRAZ O TIPO JUNTO
     cursor.execute("""
-        SELECT cliente, veiculo, placa, data_entrada, data_saida, mecanico, problema, diagnostico, total, status
+        SELECT cliente, veiculo, placa, data_entrada, data_saida, mecanico, problema, diagnostico, total, status, tipo
         FROM ordens WHERE id = ?
     """, (id,))
     ordem = cursor.fetchone()
-
-    # 🔒 Segurança extra (caso ID não exista)
+    
+    # 🔒 Segurança extra
     if not ordem:
         conn.close()
         return "OS não encontrada"
@@ -467,7 +467,7 @@ def abrir_os(id):
             pecas.append((item[1], item[2], item[3]))
         else:
             servicos.append((item[1], item[2], item[3], bool(item[4])))
-    
+
     return render_template(
         "os.html",
         id=id,
@@ -481,6 +481,7 @@ def abrir_os(id):
         diagnostico=ordem[7],
         total=ordem[8],
         status=ordem[9],
+        tipo=ordem[10],  # 🔥 ESSENCIAL
         pecas=pecas,
         servicos=servicos,
         mecanicos=mecanicos
