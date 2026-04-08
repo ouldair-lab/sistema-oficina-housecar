@@ -217,7 +217,7 @@ def inserir_despesa(descricao, valor, forma, status, data, vencimento):
 
     cursor.execute("""
     INSERT INTO despesas (descricao, valor, forma_pagamento, status, data, vencimento)
-    VALUES (?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?)
     """, (descricao, valor, forma, status, data, vencimento))
 
     conn.commit()
