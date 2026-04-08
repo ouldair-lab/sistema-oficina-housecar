@@ -239,7 +239,8 @@ def aprovar_orcamento(id):
 
     cursor.execute("""
     UPDATE ordens
-    SET status = 'APROVADO'
+    SET tipo = 'os',
+        status = 'EM ANDAMENTO'
     WHERE id = ?
     """, (id,))
 
