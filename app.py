@@ -349,6 +349,7 @@ def os_lista():
     FROM ordens o
     LEFT JOIN itens i ON o.id = i.ordem_id
     WHERE o.status != 'CANCELADA'
+    AND o.tipo = 'os'
     """
 
     params = []
