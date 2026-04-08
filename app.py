@@ -782,11 +782,17 @@ def gerar_nota(id):
    
     c.save()
 
-    return send_file(caminho, as_attachment=False)
+    return send_file(
+    caminho,
+    as_attachment=False,
+    download_name=os.path.basename(caminho)
+    )
 
 @app.route("/notas")
-def listar_notas():
+def notas():
     if proteger(): return proteger()
+
+    import os
 
     pasta = "notas"
     arquivos = []
@@ -794,12 +800,21 @@ def listar_notas():
     if os.path.exists(pasta):
         arquivos = os.listdir(pasta)
 
+        # ordenar mais recente primeiro
+        arquivos.sort(reverse=True)
+
     return render_template("notas.html", arquivos=arquivos)
 
-@app.route("/notas/<nome>")
+from flask import send_from_directory
+import os
+
+@app.route("/abrir_nota/<path:nome>")
 def abrir_nota(nome):
     if proteger(): return proteger()
-    return send_file(f"notas/{nome}")
+
+    pasta = os.path.abspath("notas")
+
+    return send_from_directory(pasta, nome)
 
 
 from banco import listar_receitas, inserir_receita
