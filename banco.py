@@ -91,7 +91,12 @@ def listar_receitas():
 
     cursor.execute("""
     SELECT * FROM receitas
-    ORDER BY id DESC
+    ORDER BY 
+    CASE 
+        WHEN status = 'PENDENTE' THEN 1
+        ELSE 2
+    END,
+    id DESC
     """)
 
     dados = cursor.fetchall()
@@ -185,16 +190,20 @@ def criar_tabela_despesas():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS despesas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-
         descricao TEXT,
         valor REAL,
-
         forma_pagamento TEXT,
-        status TEXT, -- PAGO / PENDENTE
-
-        data TEXT
+        status TEXT,
+        data TEXT,
+        vencimento TEXT
     )
     """)
+
+    # 🔥 GARANTE QUE A COLUNA EXISTE (BANCO ANTIGO)
+    try:
+        cursor.execute("ALTER TABLE despesas ADD COLUMN vencimento TEXT")
+    except:
+        pass
 
     conn.commit()
     conn.close()
@@ -202,14 +211,14 @@ def criar_tabela_despesas():
 
 # 🔷 FUNÇÕES DESPESAS
 
-def inserir_despesa(descricao, valor, forma, status, data):
+def inserir_despesa(descricao, valor, forma, status, data, vencimento):
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO despesas (descricao, valor, forma_pagamento, status, data)
+    INSERT INTO despesas (descricao, valor, forma_pagamento, status, data, vencimento)
     VALUES (?, ?, ?, ?, ?)
-    """, (descricao, valor, forma, status, data))
+    """, (descricao, valor, forma, status, data, vencimento))
 
     conn.commit()
     conn.close()
@@ -221,7 +230,12 @@ def listar_despesas():
 
     cursor.execute("""
     SELECT * FROM despesas
-    ORDER BY id DESC
+    ORDER BY 
+    CASE 
+        WHEN status = 'PENDENTE' THEN 1
+        ELSE 2
+    END,
+    id DESC
     """)
 
     dados = cursor.fetchall()

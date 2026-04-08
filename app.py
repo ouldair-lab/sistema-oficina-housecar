@@ -895,13 +895,15 @@ def despesas():
         valor = float(request.form.get("valor") or 0)
         forma = request.form.get("forma")
         status = request.form.get("status")
+        vencimento = request.form.get("vencimento")
 
         inserir_despesa(
             descricao,
             valor,
             forma,
             status,
-            datetime.now().strftime("%d/%m/%Y %H:%M")
+            datetime.now().strftime("%d/%m/%Y %H:%M"),
+            vencimento
         )
 
     dados = listar_despesas()

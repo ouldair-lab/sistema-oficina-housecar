@@ -17,6 +17,15 @@
     margin-bottom: 12px;
 }
 
+/* 🔥 ALERTAS */
+.vencendo {
+    border: 2px solid #facc15;
+}
+
+.atrasado {
+    border: 2px solid #dc2626;
+}
+
 .topo {
     display: flex;
     justify-content: space-between;
@@ -67,11 +76,6 @@
     cursor: pointer;
 }
 
-.btn-add:hover {
-    background: #05b386;
-}
-
-/* MODAL */
 .modal {
     display: none;
     position: fixed;
@@ -81,15 +85,13 @@
     background: white;
     color: black;
     padding: 15px;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
+    border-radius: 15px 15px 0 0;
 }
 </style>
 </head>
 
 <body>
 
-<!-- HEADER PADRÃO -->
 {% include "_header.html" %}
 
 <div class="total-box">
@@ -103,7 +105,6 @@
     💳 Crédito: R$ {{ "%.2f"|format(total_credito) }}
 </div>
 
-<!-- TOPO PADRÃO -->
 <div class="topo-padrao">
     <h3>Lista de Despesas</h3>
     <button class="btn-add" onclick="abrirModal()">+ Despesa</button>
@@ -111,7 +112,19 @@
 
 <div class="lista">
 {% for d in despesas %}
-<div class="card">
+
+{% set hoje = now().date() %}
+{% set venc = d[6] %}
+
+{% set classe = "" %}
+{% if venc %}
+    {% set data_venc = venc %}
+    {% if data_venc < hoje|string %}
+        {% set classe = "atrasado" %}
+    {% endif %}
+{% endif %}
+
+<div class="card {{ classe }}">
 
     <div class="topo">
         <strong>{{ d[1] }}</strong>
@@ -120,9 +133,13 @@
 
     <div><b>Forma:</b> {{ d[3] }}</div>
     <div><b>Status:</b> {{ d[4] }}</div>
+
+    {% if d[6] %}
+    <div>📅 Vencimento: {{ d[6] }}</div>
+    {% endif %}
+
     <div style="font-size:12px;">{{ d[5] }}</div>
 
-    <!-- EDITAR -->
     <button onclick="abrirEdit(this)"
         data-id="{{ d[0] }}"
         data-valor="{{ d[2] }}"
@@ -131,7 +148,6 @@
         ✏️ Editar
     </button>
 
-    <!-- EXCLUIR -->
     <a href="/excluir_despesa/{{ d[0] }}"
        onclick="return confirm('Tem certeza que deseja excluir esta despesa?')"
        class="btn-del">🗑️ Excluir</a>
@@ -140,15 +156,15 @@
 {% endfor %}
 </div>
 
-<!-- MODAL NOVA DESPESA -->
 <div class="modal" id="modal">
 <form method="POST">
 
     <h3>Nova Despesa</h3>
 
     <input name="descricao" placeholder="Descrição" required>
-
     <input name="valor" type="number" step="0.01" placeholder="Valor" required>
+
+    <input type="date" name="vencimento">
 
     <select name="forma">
         <option value="PIX">PIX</option>
@@ -168,54 +184,9 @@
 </form>
 </div>
 
-<!-- MODAL EDITAR -->
-<div class="modal" id="modalEdit">
-<form method="POST" id="formEdit">
-
-    <h3>Editar Despesa</h3>
-
-    <input name="valor" id="edit_valor" type="number" step="0.01">
-
-    <select name="forma" id="edit_forma">
-        <option value="PIX">PIX</option>
-        <option value="DINHEIRO">Dinheiro</option>
-        <option value="DÉBITO">Débito</option>
-        <option value="CRÉDITO">Crédito</option>
-    </select>
-
-    <select name="status" id="edit_status">
-        <option value="PAGO">Pago</option>
-        <option value="PENDENTE">Pendente</option>
-    </select>
-
-    <button type="submit">Salvar</button>
-    <button type="button" onclick="fecharEdit()">Cancelar</button>
-
-</form>
-</div>
-
 <script>
-function abrirModal() {
-    document.getElementById("modal").style.display = "block";
-}
-
-function fecharModal() {
-    document.getElementById("modal").style.display = "none";
-}
-
-function abrirEdit(btn) {
-    document.getElementById("modalEdit").style.display = "block";
-
-    document.getElementById("edit_valor").value = btn.dataset.valor;
-    document.getElementById("edit_forma").value = btn.dataset.forma;
-    document.getElementById("edit_status").value = btn.dataset.status;
-
-    document.getElementById("formEdit").action = "/editar_despesa/" + btn.dataset.id;
-}
-
-function fecharEdit() {
-    document.getElementById("modalEdit").style.display = "none";
-}
+function abrirModal(){ document.getElementById("modal").style.display="block"; }
+function fecharModal(){ document.getElementById("modal").style.display="none"; }
 </script>
 
 </body>
