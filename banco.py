@@ -14,9 +14,16 @@ def criar_tabela_usuarios():
         nome TEXT,
         login TEXT UNIQUE,
         senha TEXT,
-        tipo TEXT
+        tipo TEXT,
+        primeiro_acesso INTEGER DEFAULT 1
     )
     """)
+
+    # 🔥 garante a coluna mesmo se tabela já existir
+    try:
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN primeiro_acesso INTEGER DEFAULT 1")
+    except:
+        pass
 
     conn.commit()
     conn.close()
