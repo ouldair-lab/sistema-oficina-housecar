@@ -132,6 +132,30 @@ def logout():
     session.clear()
     return redirect("/login")
 
+@app.route("/resetar_senha/<int:id>")
+def resetar_senha(id):
+    if proteger(): return proteger()
+
+    if session.get("tipo") != "admin":
+        return "Acesso restrito"
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # senha padrão temporária
+    nova_senha = "1234"
+
+    cursor.execute("""
+    UPDATE usuarios
+    SET senha = ?, primeiro_acesso = 1
+    WHERE id = ?
+    """, (nova_senha, id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/usuarios")
+
 @app.route("/usuarios", methods=["GET", "POST"])
 def usuarios():
     if proteger(): return proteger()

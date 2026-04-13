@@ -43,7 +43,8 @@
     <td>
         <a href="/editar_usuario/{{ u[0] }}">✏️</a>
         <a href="/excluir_usuario/{{ u[0] }}" onclick="return confirm('Excluir usuário?')">🗑️</a>
-    </td>
+        <a href="/resetar_senha/{{ u[0] }}" onclick="return confirm('Resetar senha?')">🔑</a>
+</td>
 </tr>
 {% endfor %}
 
