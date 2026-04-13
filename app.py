@@ -197,6 +197,45 @@ def excluir_usuario(id):
 
     return redirect("/usuarios")
 
+@app.route("/editar_usuario/<int:id>", methods=["GET", "POST"])
+def editar_usuario(id):
+    if proteger(): return proteger()
+
+    # 🔐 só admin
+    if session.get("tipo") != "admin":
+        return "Acesso restrito"
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        nome = request.form.get("nome")
+        login = request.form.get("login")
+        tipo = request.form.get("tipo")
+
+        cursor.execute("""
+        UPDATE usuarios
+        SET nome = ?, login = ?, tipo = ?
+        WHERE id = ?
+        """, (nome, login, tipo, id))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/usuarios")
+
+    # GET → carregar dados
+    cursor.execute("""
+    SELECT id, nome, login, tipo
+    FROM usuarios
+    WHERE id = ?
+    """, (id,))
+
+    usuario = cursor.fetchone()
+    conn.close()
+
+    return render_template("editar_usuario.html", u=usuario)
+
 from banco import total_receitas_recebidas, total_despesas_pagas
 from banco import aniversariantes_hoje
 
