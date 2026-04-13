@@ -69,7 +69,7 @@
 
 <div class="container">
 
-    {% if session["usuario_tipo"] == "admin" %}
+    {% if tipo == "admin" %}
         <a href="/usuarios" class="btn-menu">👥 Usuários</a>
     {% endif %}
 
@@ -85,7 +85,7 @@
 
     <a href="/clientes" class="btn-menu">👤 Clientes</a>
     
-    {% if session["usuario_tipo"] == "admin" %}
+    {% if tipo == "admin" %}
         <a href="/mecanicos" class="btn-menu">👤 Mecânicos</a>
     {% endif %}
 
