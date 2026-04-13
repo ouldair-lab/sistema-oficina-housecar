@@ -166,6 +166,37 @@ def usuarios():
 
     return render_template("usuarios.html", usuarios=lista)
 
+@app.route("/excluir_usuario/<int:id>")
+def excluir_usuario(id):
+    if proteger(): return proteger()
+
+    # 🔐 só admin pode excluir
+    if session.get("tipo") != "admin":
+        return "Acesso restrito"
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # 🔒 NÃO DEIXA EXCLUIR O PRÓPRIO USUÁRIO LOGADO
+    if id == session.get("usuario_id"):
+        conn.close()
+        return "Você não pode excluir seu próprio usuário"
+
+    # 🔒 NÃO DEIXA EXCLUIR O ADMIN PRINCIPAL
+    cursor.execute("SELECT login FROM usuarios WHERE id = ?", (id,))
+    user = cursor.fetchone()
+
+    if user and user[0] == "admin":
+        conn.close()
+        return "Não é permitido excluir o administrador principal"
+
+    cursor.execute("DELETE FROM usuarios WHERE id = ?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/usuarios")
+
 from banco import total_receitas_recebidas, total_despesas_pagas
 from banco import aniversariantes_hoje
 
