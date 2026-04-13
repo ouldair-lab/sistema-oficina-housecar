@@ -92,6 +92,36 @@ def login():
 
     return render_template("login.html")
 
+@app.route("/trocar_senha", methods=["GET", "POST"])
+def trocar_senha():
+    if not session.get("logado"):
+        return redirect("/login")
+
+    if request.method == "POST":
+        nova_senha = request.form.get("senha")
+
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE usuarios
+            SET senha = ?, primeiro_acesso = 0
+            WHERE id = ?
+        """, (nova_senha, session["usuario_id"]))
+
+        conn.commit()
+        conn.close()
+
+        return redirect("/painel")
+
+    return """
+    <h2>🔐 Primeiro acesso - Defina sua senha</h2>
+    <form method="POST">
+        <input type="password" name="senha" placeholder="Nova senha" required>
+        <button type="submit">Salvar</button>
+    </form>
+    """
+
 # 🔐 LOGOUT
 @app.route("/logout")
 def logout():
