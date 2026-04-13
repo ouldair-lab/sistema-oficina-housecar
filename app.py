@@ -41,6 +41,10 @@ EMPRESA = {
 
 app = Flask(__name__)
 
+@app.context_processor
+def inject_user():
+    return dict(tipo=session.get("tipo"))
+
 @app.after_request
 def add_header(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -186,7 +190,7 @@ def index():
         saldo=saldo,
         receitas=receitas,
         despesas=despesas,
-        aniversariantes=aniversariantes  # 👈 IMPORTANTE
+        aniversariantes=aniversariantes  # 👈 IMPORTANTE        
     )
 
 @app.route("/financeiro")
