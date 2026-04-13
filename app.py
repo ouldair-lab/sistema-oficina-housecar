@@ -133,7 +133,7 @@ def usuarios():
     if proteger(): return proteger()
 
     # 🔐 só admin acessa
-    if session.get("usuario_tipo") != "admin":
+    if session.get("tipo") != "admin":
         return "Acesso restrito"
 
     conn = conectar()
@@ -1272,7 +1272,7 @@ from banco import inserir_mecanico, listar_mecanicos
 @app.route("/mecanicos", methods=["GET", "POST"])
 def mecanicos():
     if proteger(): return proteger()
-    if session.get("usuario_tipo") != "admin":
+    if session.get("tipo") != "admin":
         return "Acesso restrito ao administrador"
 
     if request.method == "POST":
