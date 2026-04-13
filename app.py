@@ -67,22 +67,28 @@ def login():
         cursor = conn.cursor()
 
         cursor.execute("""
-        SELECT id, nome, tipo FROM usuarios
-        WHERE login = ? AND senha = ?
-        """, (usuario, senha))
-
+            SELECT id, senha, tipo, primeiro_acesso
+            FROM usuarios
+            WHERE login = ?
+        """, (usuario,))
+        
         user = cursor.fetchone()
+
         conn.close()
 
-        if user:
+        if user and user[1] == senha:
             session["logado"] = True
             session["usuario_id"] = user[0]
-            session["usuario_nome"] = user[1]
-            session["usuario_tipo"] = user[2]
+            session["tipo"] = user[2]
+
+            # 🔥 PRIMEIRO ACESSO
+            if user[3] == 1:
+                return redirect("/trocar_senha")
 
             return redirect("/painel")
+
         else:
-            return render_template("login.html", erro="Usuário ou senha inválidos")
+            return "Login inválido"
 
     return render_template("login.html")
 
