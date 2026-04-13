@@ -156,6 +156,47 @@ def resetar_senha(id):
 
     return redirect("/usuarios")
 
+@app.route("/esqueci_senha", methods=["GET", "POST"])
+def esqueci_senha():
+    if request.method == "POST":
+        login = request.form.get("login")
+
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT id FROM usuarios WHERE login = ?
+        """, (login,))
+
+        user = cursor.fetchone()
+
+        if user:
+            cursor.execute("""
+            UPDATE usuarios
+            SET senha = ?, primeiro_acesso = 1
+            WHERE id = ?
+            """, ("1234", user[0]))
+
+            conn.commit()
+            conn.close()
+
+            return """
+            <h2>🔑 Senha resetada!</h2>
+            <p>Use a senha: <b>1234</b></p>
+            <a href="/login">Voltar</a>
+            """
+
+        conn.close()
+        return "Usuário não encontrado"
+
+    return """
+    <h2>🔐 Recuperar senha</h2>
+    <form method="POST">
+        <input type="text" name="login" placeholder="Digite seu login" required>
+        <button type="submit">Resetar senha</button>
+    </form>
+    """
+
 @app.route("/usuarios", methods=["GET", "POST"])
 def usuarios():
     if proteger(): return proteger()
