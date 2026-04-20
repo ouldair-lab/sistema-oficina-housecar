@@ -88,6 +88,14 @@ tr:nth-child(even) {
     <button class="btn-add" onclick="abrirModal()">+ Despesa</button>
 </div>
 
+<div>
+    <strong>Total Pago: R$ {{ "%.2f"|format(total) }}</strong><br>
+    📲 PIX: R$ {{ "%.2f"|format(total_pix) }} |
+    💵 Dinheiro: R$ {{ "%.2f"|format(total_dinheiro) }} |
+    💳 Débito: R$ {{ "%.2f"|format(total_debito) }} |
+    💳 Crédito: R$ {{ "%.2f"|format(total_credito) }}
+</div>
+
 <div class="tabela-container">
 <table>
 <tr>
