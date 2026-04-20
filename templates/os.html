@@ -197,6 +197,12 @@ function adicionarPeca() {
 
     pecas.push({ nome, qtd, valor });
 
+    document.getElementById("peca_nome").value = "";
+    document.getElementById("peca_qtd").value = 1;
+    document.getElementById("peca_valor").value = "";
+    document.getElementById("peca_nome").focus();
+
+    console.log(pecas);
     renderPecas();
 }
 
