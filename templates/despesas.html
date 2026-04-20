@@ -8,58 +8,6 @@
 <link rel="stylesheet" href="/static/style.css">
 
 <style>
-.lista { margin-top: 15px; }
-
-.card {
-    background: #1e3a8a;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-}
-
-/* 🔥 ALERTAS */
-.vencendo {
-    border: 2px solid #facc15;
-}
-
-.atrasado {
-    border: 2px solid #dc2626;
-}
-
-.topo {
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-}
-
-.valor { font-weight: bold; }
-
-.btn-del {
-    background:#dc2626;
-    color:white;
-    padding:6px;
-    border-radius:6px;
-    display:block;
-    text-align:center;
-    margin-top:5px;
-    text-decoration:none;
-}
-
-.total-box {
-    background:#dc2626;
-    padding:12px;
-    border-radius:10px;
-    text-align:center;
-    font-weight:bold;
-}
-
-.resumo {
-    background:#1e3a8a;
-    padding:10px;
-    border-radius:10px;
-    margin-top:10px;
-}
-
 .topo-padrao {
     display: flex;
     justify-content: space-between;
@@ -69,11 +17,52 @@
 
 .btn-add {
     background: #06d6a0;
-    border: none;
     padding: 10px 14px;
     border-radius: 8px;
     font-weight: bold;
-    cursor: pointer;
+    border: none;
+}
+
+.tabela-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #1e3a8a;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+.btn-acao {
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-edit {
+    background: #2563eb;
+}
+
+.btn-del {
+    background: #dc2626;
 }
 
 .modal {
@@ -94,86 +83,77 @@
 
 {% include "_header.html" %}
 
-<div class="total-box">
-    Total Pago: R$ {{ "%.2f"|format(total) }}
-</div>
-
-<div class="resumo">
-    📲 PIX: R$ {{ "%.2f"|format(total_pix) }}<br>
-    💵 Dinheiro: R$ {{ "%.2f"|format(total_dinheiro) }}<br>
-    💳 Débito: R$ {{ "%.2f"|format(total_debito) }}<br>
-    💳 Crédito: R$ {{ "%.2f"|format(total_credito) }}
-</div>
-
 <div class="topo-padrao">
-    <h3>Lista de Despesas</h3>
+    <h3>💸 Despesas</h3>
     <button class="btn-add" onclick="abrirModal()">+ Despesa</button>
 </div>
 
-<div class="lista">
+<div class="tabela-container">
+<table>
+<tr>
+    <th>Descrição</th>
+    <th>Valor</th>
+    <th>Forma</th>
+    <th>Status</th>
+    <th>Vencimento</th>
+    <th>Ações</th>
+</tr>
+
 {% for d in despesas %}
+<tr>
+    <td>{{ d[1] }}</td>
+    <td>R$ {{ "%.2f"|format(d[2]) }}</td>
+    <td>{{ d[3] }}</td>
+    <td>{{ d[4] }}</td>
 
-{% set hoje = hoje %}
-{% set venc = d[6] %}
+    <td>
+        {% if d[6] %}
+            {{ formatar_data(d[6]) }}
+        {% endif %}
+    </td>
 
-{% set classe = "" %}
-{% if venc %}
-    {% set data_venc = venc %}
-    {% if data_venc < hoje %}
-        {% set classe = "atrasado" %}
-    {% endif %}
-{% endif %}
+    <td>
+        <button class="btn-acao btn-edit"
+            data-id="{{ d[0] }}"
+            data-valor="{{ d[2] }}"
+            data-forma="{{ d[3] }}"
+            data-status="{{ d[4] }}"
+            onclick="abrirEdit(this)">
+            ✏️
+        </button>
 
-<div class="card {{ classe }}">
-
-    <div class="topo">
-        <strong>{{ d[1] }}</strong>
-        <span class="valor">R$ {{ "%.2f"|format(d[2]) }}</span>
-    </div>
-
-    <div><b>Forma:</b> {{ d[3] }}</div>
-    <div><b>Status:</b> {{ d[4] }}</div>
-
-    {% if d[6] %}
-    <div>📅 Vencimento: {{ d[6][8:10] }}/{{ d[6][5:7] }}/{{ d[6][0:4] }}</div>
-    {% endif %}
-
-    <div style="font-size:12px;">{{ d[5] }}</div>
-
-    <button onclick="abrirEdit(this)"
-        data-id="{{ d[0] }}"
-        data-valor="{{ d[2] }}"
-        data-forma="{{ d[3] }}"
-        data-status="{{ d[4] }}">
-        ✏️ Editar
-    </button>
-
-    <a href="/excluir_despesa/{{ d[0] }}"
-       onclick="return confirm('Tem certeza que deseja excluir esta despesa?')"
-       class="btn-del">🗑️ Excluir</a>
-
-</div>
+        <a href="/excluir_despesa/{{ d[0] }}"
+           class="btn-acao btn-del"
+           onclick="return confirm('Excluir esta despesa?')">
+           🗑️
+        </a>
+    </td>
+</tr>
 {% endfor %}
+</table>
 </div>
 
+<!-- MODAL -->
 <div class="modal" id="modal">
-<form method="POST">
+<form method="POST" id="formDespesa">
 
-    <h3>Nova Despesa</h3>
+    <input type="hidden" name="id" id="edit_id">
 
-    <input name="descricao" placeholder="Descrição" required>
-    <input name="valor" type="number" step="0.01" placeholder="Valor" required>
+    <h3 id="tituloModal">Nova Despesa</h3>
 
-    <input type="date" name="vencimento">
+    <input name="descricao" id="edit_descricao" placeholder="Descrição">
+    <input name="valor" id="edit_valor" type="number" step="0.01">
 
-    <select name="forma">
+    <input type="date" name="vencimento" id="edit_vencimento">
+
+    <select name="forma" id="edit_forma">
         <option value="PIX">PIX</option>
         <option value="DINHEIRO">Dinheiro</option>
         <option value="DÉBITO">Débito</option>
         <option value="CRÉDITO">Crédito</option>
     </select>
 
-    <select name="status">
+    <select name="status" id="edit_status">
         <option value="PAGO">Pago</option>
         <option value="PENDENTE">Pendente</option>
     </select>
@@ -184,9 +164,76 @@
 </form>
 </div>
 
+<div style="margin-top:20px; text-align:center;">
+
+    {% if total_paginas > 1 %}
+
+        {% if pagina > 1 %}
+            <a href="?pagina={{ pagina - 1 }}"
+               style="margin:3px; padding:6px 10px; background:#1e3a8a; color:white; border-radius:5px; text-decoration:none;">
+                ⬅ Anterior
+            </a>
+        {% endif %}
+
+        {% for p in range(1, total_paginas + 1) %}
+            <a href="?pagina={{ p }}"
+               style="margin:3px; padding:6px 10px; 
+               background: {% if p == pagina %}#22c55e{% else %}#1e3a8a{% endif %};
+               color:white; border-radius:5px; text-decoration:none;">
+                {{ p }}
+            </a>
+        {% endfor %}
+
+        {% if pagina < total_paginas %}
+            <a href="?pagina={{ pagina + 1 }}"
+               style="margin:3px; padding:6px 10px; background:#1e3a8a; color:white; border-radius:5px; text-decoration:none;">
+                Próxima ➡
+            </a>
+        {% endif %}
+
+    {% endif %}
+
+</div>
+
 <script>
-function abrirModal(){ document.getElementById("modal").style.display="block"; }
-function fecharModal(){ document.getElementById("modal").style.display="none"; }
+function abrirModal(){
+    document.getElementById("modal").style.display="block";
+
+    document.getElementById("formDespesa").action = "/despesas";
+    document.getElementById("tituloModal").innerText = "Nova Despesa";
+
+    limparCampos();
+}
+
+function fecharModal(){
+    document.getElementById("modal").style.display="none";
+}
+
+function limparCampos(){
+    document.getElementById("edit_id").value = "";
+    document.getElementById("edit_descricao").value = "";
+    document.getElementById("edit_valor").value = "";
+    document.getElementById("edit_vencimento").value = "";
+}
+
+function abrirEdit(btn){
+    let id = btn.dataset.id;
+    let valor = btn.dataset.valor;
+    let forma = btn.dataset.forma;
+    let status = btn.dataset.status;
+
+    document.getElementById("modal").style.display="block";
+
+    document.getElementById("formDespesa").action = "/editar_despesa/" + id;
+
+    // 🔥 MANTÉM O TÍTULO
+    document.getElementById("tituloModal").innerText = "Editar Despesa";
+
+    document.getElementById("edit_id").value = id;
+    document.getElementById("edit_valor").value = valor;
+    document.getElementById("edit_forma").value = forma;
+    document.getElementById("edit_status").value = status;
+}
 </script>
 
 </body>

@@ -103,7 +103,20 @@ tr:nth-child(even) {
         <td>{{ o[6] }}</td>
 
         <td>
-            <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>
+            <a href="/orcamento?id={{ o[0] }}" class="btn-acao">Abrir</a>
+
+            <a href="/converter_os/{{ o[0] }}" 
+            class="btn-acao" 
+            style="background:#f59e0b; margin-left:5px;">
+            Converter
+            </a>
+
+            <a href="/excluir_orcamento/{{ o[0] }}"
+            class="btn-acao"
+            style="background:#dc2626; margin-left:5px;"
+            onclick="return confirm('Tem certeza que deseja excluir este orçamento?')">
+            Excluir
+            </a>
         </td>
     </tr>
     {% endfor %}

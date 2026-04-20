@@ -13,6 +13,8 @@ from banco import criar_tabela_pagamentos
 from banco import criar_tabela_usuarios
 from banco import criar_admin_padrao
 
+app = Flask(__name__)
+
 def iniciar_banco():
     criar_tabelas()
     criar_tabela_despesas()
@@ -38,8 +40,6 @@ EMPRESA = {
     "telefone": "(61) 9 9580-5984",
     "endereco": "SOF CONJUNTO E LOTE 60 - SETOR NORTE - PLANALTINA-DF"
 }
-
-app = Flask(__name__)
 
 @app.context_processor
 def inject_user():
@@ -332,129 +332,211 @@ def index():
 def financeiro():
     if proteger(): return proteger()
 
-    return render_template("financeiro.html")
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT SUM(valor_final) FROM receitas WHERE status='RECEBIDO'")
+    receitas = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT SUM(valor) FROM despesas WHERE status='PAGO'")
+    despesas = cursor.fetchone()[0] or 0
+
+    saldo = receitas - despesas
+
+    conn.close()
+
+    return render_template(
+        "financeiro.html",
+        receitas=receitas,
+        despesas=despesas,
+        saldo=saldo
+    )
 
 @app.route("/orcamento", methods=["GET", "POST"])
 def orcamento():
     if proteger(): return proteger()
 
-    mecanicos = listar_mecanicos()
-    
+    import json
+    from datetime import datetime
+
+    conn = conectar()
+
+    # =========================
+    # POST (SALVAR / ATUALIZAR)
+    # =========================
     if request.method == "POST":
+        
+        id = request.form.get("id")
+
         cliente = request.form.get("cliente")
+        telefone = request.form.get("telefone")
         veiculo = request.form.get("veiculo")
         placa = request.form.get("placa")
-
-        # 🔧 Padroniza placa
-        placa = placa.upper().replace(" ", "") if placa else placa
-
-        # 🔒 Validação
-        if not placa:
-            return "Erro: a placa é obrigatória!", 400
-
-        mecanico = request.form.get("mecanico")
         problema = request.form.get("problema")
         diagnostico = request.form.get("diagnostico")
-
-        # 📄 Nome do arquivo (já pronto pro PDF)
-        import re
-        nome_arquivo = re.sub(r'[^a-zA-Z0-9]', '_', f"{cliente}_{placa}")
+        mecanico = request.form.get("mecanico")
 
         # 🧰 PEÇAS
-        pecas_nome = request.form.getlist("peca_nome")
-        pecas_valor = request.form.getlist("peca_valor")
-        pecas_qtd = request.form.getlist("peca_qtd")
-
         pecas = []
-        for nome, valor, qtd in zip(pecas_nome, pecas_valor, pecas_qtd):
-            if nome:
-                valor = float(valor) if valor else 0
-                qtd = int(qtd) if qtd else 1
+        pecas_json = request.form.get("pecas_json")
 
-                pecas.append({
-                    "nome": nome,
-                    "valor": valor,
-                    "qtd": qtd,
-                    "total": valor * qtd
-                })
+        if pecas_json:
+            try:
+                dados = json.loads(pecas_json)
+                for p in dados:
+                    nome = p.get("nome")
+                    valor = float(p.get("valor") or 0)
+                    qtd = int(p.get("qtd") or 1)
+
+                    if nome:
+                        pecas.append((nome, valor, qtd))
+            except:
+                pass
 
         # 🔧 SERVIÇOS
         servicos = []
+        servicos_json = request.form.get("servicos_json")
 
-        i = 0
-        while True:
-            nome = request.form.get(f"servico_nome_{i}")
-            if not nome:
-                break
+        if servicos_json:
+            try:
+                dados = json.loads(servicos_json)
+                for s in dados:
+                    nome = s.get("nome")
+                    valor = float(s.get("valor") or 0)
+                    qtd = int(s.get("qtd") or 1)
+                    comissao = bool(s.get("comissao"))
 
-            valor = float(request.form.get(f"servico_valor_{i}") or 0)
-            qtd = int(request.form.get(f"servico_qtd_{i}") or 1)
-
-            comissao = request.form.get(f"servico_comissao_{i}") is not None
-
-            servicos.append({
-                "nome": nome,
-                "valor": valor,
-                "qtd": qtd,
-                "comissao": comissao,
-                "total": valor * qtd
-            })
-
-            i += 1
+                    if nome:
+                        servicos.append((nome, valor, qtd, comissao))
+            except:
+                pass
 
         # 💰 TOTAL
-        total = sum(p["total"] for p in pecas) + sum(s["total"] for s in servicos)
+        total = 0
+        for p in pecas:
+            total += p[1] * p[2]
 
-        # 💾 SALVAR NO BANCO
-        conn = conectar()
+        for s in servicos:
+            total += s[1] * s[2]
+
         cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT INTO ordens (cliente, veiculo, placa, problema, diagnostico, total, tipo, status, mecanico, data_entrada)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (cliente, veiculo, placa, problema, diagnostico, total, "orcamento", "PENDENTE", mecanico, datetime.now().strftime("%Y-%m-%d")))
-
-        ordem_id = cursor.lastrowid
-
-        # peças
-        for p in pecas:
+        if id and id.isdigit():
+            # 🔄 ATUALIZAR
             cursor.execute("""
-            INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, (ordem_id, "peca", p["nome"], p["valor"], p["qtd"], 0))
-
-        # serviços
-        for s in servicos:
-            cursor.execute("""
-            INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
-            VALUES (?, ?, ?, ?, ?, ?)
+                UPDATE ordens SET
+                    cliente=?,
+                    telefone=?,
+                    veiculo=?,
+                    placa=?,
+                    problema=?,
+                    diagnostico=?,
+                    total=?,
+                    mecanico=?
+                WHERE id=?
             """, (
-                ordem_id,
-                "servico",
-                s["nome"],
-                s["valor"],
-                s["qtd"],
-                int(s["comissao"])
+                cliente,
+                telefone,
+                veiculo,
+                placa,
+                problema,
+                diagnostico,
+                total,
+                mecanico,
+                id
             ))
 
+            ordem_id = id
+
+            cursor.execute("DELETE FROM itens WHERE ordem_id = ?", (ordem_id,))
+
+        else:
+            # ➕ NOVO
+            cursor.execute("""
+                INSERT INTO ordens (
+                    cliente, telefone, veiculo, placa, problema, diagnostico,
+                    total, tipo, status, mecanico, data_entrada
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                cliente,
+                telefone,
+                veiculo,
+                placa,
+                problema,
+                diagnostico,
+                total,
+                "orcamento",
+                "PENDENTE",
+                mecanico,
+                datetime.now().strftime("%Y-%m-%d")
+            ))
+
+            ordem_id = cursor.lastrowid
+
+        # 🧰 salvar peças
+        for p in pecas:
+            cursor.execute("""
+                INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (ordem_id, "peca", p[0], p[1], p[2], 0))
+
+        # 🔧 salvar serviços
+        for s in servicos:
+            cursor.execute("""
+                INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (ordem_id, "servico", s[0], s[1], s[2], int(s[3])))
+
         conn.commit()
-        conn.close()        
+        conn.close()
 
-        return render_template(
-            "ficha.html",
-            empresa=EMPRESA,
-            cliente=cliente,
-            veiculo=veiculo,
-            placa=placa,
-            problema=problema,
-            diagnostico=diagnostico,
-            mecanicos=mecanicos,
-            pecas=pecas,
-            servicos=servicos,
-            total=total
-        )
+        return redirect("/orcamentos")
 
-    return render_template("orcamento.html", id=id, mecanicos=mecanicos)
+    # =========================
+    # GET (ABRIR TELA)
+    # =========================
+
+    id = request.args.get("id")
+
+    mecanicos = conn.execute("SELECT nome FROM mecanicos").fetchall()
+
+    if id:
+        ordem = conn.execute("""
+        SELECT 
+            id, cliente, telefone, veiculo, placa,
+            problema, diagnostico, total, tipo, status, mecanico,
+            data_entrada, data_saida
+        FROM ordens
+        WHERE id = ?
+        """, (id,)).fetchone()
+
+        itens = conn.execute("SELECT * FROM itens WHERE ordem_id = ?", (id,)).fetchall()
+
+        pecas = []
+        servicos = []
+
+        for i in itens:
+            if i[2] == "peca":
+                pecas.append((i[3], i[4], i[5]))
+            elif i[2] == "servico":
+                servicos.append((i[3], i[4], i[5], i[6]))
+
+    else:
+        ordem = None
+        pecas = []
+        servicos = []
+
+    conn.close()
+
+    return render_template(
+        "orcamento.html",
+        mecanicos=mecanicos,
+        id=id,
+        ordem=ordem,
+        pecas=pecas,
+        servicos=servicos
+    )
 
 @app.route("/aprovar_orcamento/<int:id>")
 def aprovar_orcamento(id):
@@ -476,74 +558,183 @@ def aprovar_orcamento(id):
     <p>Em breve entraremos em contato.</p>
     """
 
-@app.route("/os", methods=["POST"])
-def os():
+@app.route("/excluir_orcamento/<int:id>")
+def excluir_orcamento(id):
     if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # 🔥 apaga itens primeiro
+    cursor.execute("DELETE FROM itens WHERE ordem_id = ?", (id,))
+
+    # 🔥 apaga ordem
+    cursor.execute("DELETE FROM ordens WHERE id = ?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/orcamentos")
+
+@app.route("/os", methods=["POST"])
+def os():    
+    if proteger(): return proteger()
+
+    import json
+    from datetime import datetime
+
+    id = request.form.get("id")
+
     cliente = request.form.get("cliente")
+    telefone = request.form.get("telefone")  # 🔥 NOVO
     veiculo = request.form.get("veiculo")
     placa = request.form.get("placa")
     mecanico = request.form.get("mecanico")
     problema = request.form.get("problema")
     diagnostico = request.form.get("diagnostico")
+    status = request.form.get("status")
+    if not status:
+        status = "EM ANDAMENTO"
+    data_entrada = request.form.get("data_entrada")
+    data_saida = request.form.get("data_saida")
 
-    # 🧰 PEÇAS (mantém como está)
-    pecas_nome = request.form.getlist("peca_nome")
-    pecas_valor = request.form.getlist("peca_valor")
-    pecas_qtd = request.form.getlist("peca_qtd")
+    # 🧰 PEÇAS
+    pecas = []
+    pecas_json = request.form.get("pecas_json")
 
-    pecas = list(zip(pecas_nome, pecas_valor, pecas_qtd))
+    if pecas_json:
+        try:
+            dados = json.loads(pecas_json)
+            for p in dados:
+                nome = p.get("nome")
+                valor = float(p.get("valor") or 0)
+                qtd = int(p.get("qtd") or 1)
 
-    # 🔧 SERVIÇOS (modo novo com índice)
+                if nome:
+                    pecas.append((nome, valor, qtd))
+        except:
+            pass
+
+    # 🔧 SERVIÇOS
     servicos = []
+    servicos_json = request.form.get("servicos_json")
 
-    i = 0
-    while True:
-        nome = request.form.get(f"servico_nome_{i}")
-        if not nome:
-            break
+    if servicos_json:
+        try:
+            dados = json.loads(servicos_json)
+            for s in dados:
+                nome = s.get("nome")
+                valor = float(s.get("valor") or 0)
+                qtd = int(s.get("qtd") or 1)
+                comissao = bool(s.get("comissao"))
 
-        valor = float(request.form.get(f"servico_valor_{i}") or 0)
-        qtd = int(request.form.get(f"servico_qtd_{i}") or 1)
+                if nome:
+                    servicos.append((nome, valor, qtd, comissao))
+        except:
+            pass
 
-        comissao = request.form.get(f"servico_comissao_{i}") is not None
-
-        servicos.append((
-            nome,
-            valor,
-            qtd,
-            comissao
-        ))
-
-        i += 1
-
-    # 💰 CALCULAR TOTAL (garante que nunca seja None)
+    # 💰 TOTAL
     total = 0
-
-    # peças
     for p in pecas:
-        valor = float(p[1]) if p[1] else 0
-        qtd = int(p[2]) if p[2] else 0
-        total += valor * qtd
+        total += p[1] * p[2]
 
-    # serviços
     for s in servicos:
         total += s[1] * s[2]
 
-    return render_template(
-    "os.html",
-    cliente=cliente,
-    veiculo=veiculo,
-    placa=placa,
-    mecanico=mecanico,
-    problema=problema,
-    diagnostico=diagnostico,
-    total=total,
-    pecas=pecas,
-    servicos=servicos,
-    tipo="orcamento",  # 🔥 ESSENCIAL
-    status="PENDENTE",
-    data_entrada=datetime.now().strftime("%Y-%m-%d")
-)
+    conn = conectar()
+    cursor = conn.cursor()
+
+    if id and id.isdigit() and int(id) > 0:
+        # 🔄 UPDATE
+        cursor.execute("""
+            UPDATE ordens SET
+                cliente=?,
+                telefone=?,   -- 🔥 NOVO
+                veiculo=?,
+                placa=?,
+                problema=?,
+                diagnostico=?,
+                total=?,
+                mecanico=?,
+                status=?,
+                data_entrada=?,
+                data_saida=?
+            WHERE id=?
+        """, (
+            cliente,
+            telefone,  # 🔥 NOVO
+            veiculo,
+            placa,
+            problema,
+            diagnostico,
+            total,
+            mecanico,
+            status,
+            data_entrada,
+            data_saida,
+            id
+        ))
+
+        ordem_id = id
+
+        # limpa itens
+        cursor.execute("DELETE FROM itens WHERE ordem_id = ?", (ordem_id,))
+
+    else:
+        # ➕ NOVA
+        cursor.execute("""
+            INSERT INTO ordens (
+                cliente, telefone, veiculo, placa, problema, diagnostico,
+                total, tipo, status, mecanico, data_entrada
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            cliente,
+            telefone,  # 🔥 NOVO
+            veiculo,
+            placa,
+            problema,
+            diagnostico,
+            total,
+            "os",
+            "EM ANDAMENTO",
+            mecanico,
+            datetime.now().strftime("%Y-%m-%d")
+        ))
+
+        ordem_id = cursor.lastrowid
+
+    # 🧰 salvar peças
+    for p in pecas:
+        cursor.execute("""
+            INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (ordem_id, "peca", p[0], p[1], p[2], 0))
+
+    # 🔧 salvar serviços
+    for s in servicos:
+        cursor.execute("""
+            INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (ordem_id, "servico", s[0], s[1], s[2], int(s[3])))
+
+    conn.commit()
+
+    # 🔥 INTEGRAÇÃO COM RECEITAS
+    if status == "FINALIZADA":
+
+        descricao = f"OS #{ordem_id} - {cliente} - {placa}"
+
+        gerar_ou_atualizar_receita_os(
+            ordem_id=ordem_id,
+            descricao=descricao,
+            valor_os=total,
+            data=data_saida if data_saida else datetime.now().strftime("%Y-%m-%d")
+        )
+
+    conn.close()
+
+    return redirect("/os_lista")
 
 @app.route("/orcamentos")
 def orcamentos():
@@ -567,7 +758,7 @@ def orcamentos():
     SELECT id, cliente, veiculo, placa, total, status, mecanico
     FROM ordens
     WHERE tipo = 'orcamento'
-    AND status != 'CANCELADA'
+    AND status = 'PENDENTE'
     ORDER BY id DESC
     """)
 
@@ -639,24 +830,15 @@ def os_lista():
 @app.route("/abrir_os/<int:id>")
 def abrir_os(id):
     if proteger(): return proteger()
+
     mecanicos = listar_mecanicos()
 
-    # 🆕 NOVA OS (quando clica em + Nova OS)
+    # 🆕 NOVA OS
     if id == 0:
         return render_template(
             "os.html",
             id=0,
-            cliente="",
-            veiculo="",
-            placa="",
-            data_entrada="",
-            data_saida="",
-            mecanico="",
-            problema="",
-            diagnostico="",
-            total=0,
-            status="EM ANDAMENTO",
-            tipo="os",
+            ordem=None,
             pecas=[],
             servicos=[],
             mecanicos=mecanicos
@@ -665,19 +847,33 @@ def abrir_os(id):
     conn = conectar()
     cursor = conn.cursor()
 
-    # 🔥 AGORA TRAZ O TIPO JUNTO
+    # 🔥 SELECT PADRONIZADO (IGUAL ORÇAMENTO)
     cursor.execute("""
-        SELECT cliente, veiculo, placa, data_entrada, data_saida, mecanico, problema, diagnostico, total, status, tipo
-        FROM ordens WHERE id = ?
+        SELECT 
+            id,
+            cliente,
+            telefone,
+            veiculo,
+            placa,
+            problema,
+            diagnostico,
+            total,
+            tipo,
+            status,
+            mecanico,
+            data_entrada,
+            data_saida
+        FROM ordens 
+        WHERE id = ?
     """, (id,))
-    ordem = cursor.fetchone()
     
-    # 🔒 Segurança extra
+    ordem = cursor.fetchone()
+
     if not ordem:
         conn.close()
         return "OS não encontrada"
 
-    # Itens
+    # 🔧 ITENS
     cursor.execute("""
         SELECT tipo, nome, valor, quantidade, comissao
         FROM itens WHERE ordem_id = ?
@@ -698,114 +894,29 @@ def abrir_os(id):
     return render_template(
         "os.html",
         id=id,
-        cliente=ordem[0],
-        veiculo=ordem[1],
-        placa=ordem[2],
-        data_entrada=ordem[3],
-        data_saida=ordem[4],
-        mecanico=ordem[5],
-        problema=ordem[6],
-        diagnostico=ordem[7],
-        total=ordem[8],
-        status=ordem[9],
-        tipo=ordem[10],  # 🔥 ESSENCIAL
+        ordem=ordem,  # 🔥 AGORA PADRÃO ÚNICO
         pecas=pecas,
         servicos=servicos,
         mecanicos=mecanicos
     )
 
-@app.route("/atualizar_os", methods=["POST"])
-def atualizar_os():
+
+@app.route("/converter_os/<int:id>")
+def converter_os(id):
     if proteger(): return proteger()
-    ordem_id = request.form.get("ordem_id")
-
-    cliente = request.form.get("cliente")
-    veiculo = request.form.get("veiculo")
-    placa = request.form.get("placa")
-    data_entrada = request.form.get("data_entrada")
-    data_saida = request.form.get("data_saida")
-    mecanico = request.form.get("mecanico")
-    problema = request.form.get("problema")
-    diagnostico = request.form.get("diagnostico")
-    status = request.form.get("status")
-
-    # 🔧 padroniza placa
-    placa = placa.upper().replace(" ", "") if placa else placa
-
-    # 🧰 PEÇAS
-    pecas_nome = request.form.getlist("peca_nome")
-    pecas_valor = request.form.getlist("peca_valor")
-    pecas_qtd = request.form.getlist("peca_qtd")
-
-    pecas = list(zip(pecas_nome, pecas_valor, pecas_qtd))
-
-    # 🔧 SERVIÇOS (modelo indexado)
-    servicos = []
-
-    i = 0
-    while True:
-        nome = request.form.get(f"servico_nome_{i}")
-        if not nome:
-            break
-
-        valor = float(request.form.get(f"servico_valor_{i}") or 0)
-        qtd = int(request.form.get(f"servico_qtd_{i}") or 1)
-        comissao = request.form.get(f"servico_comissao_{i}") is not None
-
-        servicos.append((nome, valor, qtd, comissao))
-        i += 1
-
-    # 💰 recalcular total
-    total = 0
-
-    for p in pecas:
-        valor = float(p[1]) if p[1] else 0
-        qtd = int(p[2]) if p[2] else 0
-        total += valor * qtd
-
-    for s in servicos:
-        total += s[1] * s[2]
 
     conn = conectar()
     cursor = conn.cursor()
 
-    # 🔥 atualizar dados principais
     cursor.execute("""
-    UPDATE ordens
-    SET cliente=?, veiculo=?, placa=?, data_entrada=?, data_saida=?, mecanico=?, problema=?, diagnostico=?, total=?, tipo=?, status=?
-    WHERE id=?
-    """, (cliente, veiculo, placa, data_entrada, data_saida, mecanico, problema, diagnostico, total, "os", status, ordem_id))
-
-    # 🔥 apagar itens antigos
-    cursor.execute("DELETE FROM itens WHERE ordem_id=?", (ordem_id,))
-
-    # 🔧 inserir peças novamente
-    for p in pecas:
-        cursor.execute("""
-        INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """, (ordem_id, "peca", p[0], p[1], p[2], 0))
-
-    # 🔧 inserir serviços novamente
-    for s in servicos:
-        cursor.execute("""
-        INSERT INTO itens (ordem_id, tipo, nome, valor, quantidade, comissao)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """, (ordem_id, "servico", s[0], s[1], s[2], int(s[3])))
+        UPDATE ordens
+        SET tipo = 'os',
+            status = 'EM ANDAMENTO'
+        WHERE id = ?
+    """, (id,))
 
     conn.commit()
     conn.close()
-
-    # 🔥 INTEGRAÇÃO COM RECEITAS (AQUI É O PONTO CERTO)
-    if status == "FINALIZADA":
-        descricao = f"OS #{ordem_id} - {cliente} - {placa}"
-
-        gerar_ou_atualizar_receita_os(
-            ordem_id=ordem_id,
-            descricao=descricao,
-            valor_os=total,
-            data=datetime.now().strftime("%d/%m/%Y %H:%M")
-        )
 
     return redirect("/os_lista")
 
@@ -847,6 +958,8 @@ def formatar_data(data):
         return datetime.strptime(data, "%Y-%m-%d").strftime("%d-%m-%Y")
     except:
         return data
+    
+app.jinja_env.globals.update(formatar_data=formatar_data)
 
 @app.route("/gerar_nota/<int:id>")
 def gerar_nota(id):
@@ -861,8 +974,9 @@ def gerar_nota(id):
     """, (id,))
     ordem = cursor.fetchone()
 
+    # 🔥 AGORA TRAZ O TIPO
     cursor.execute("""
-    SELECT nome, valor, quantidade FROM itens
+    SELECT tipo, nome, valor, quantidade FROM itens
     WHERE ordem_id = ?
     """, (id,))
     itens = cursor.fetchall()
@@ -871,12 +985,11 @@ def gerar_nota(id):
 
     (cliente, veiculo, placa, problema, diagnostico, total,
      data_entrada, data_saida, mecanico) = ordem
-    
+
     data_entrada_fmt = formatar_data(data_entrada)
     data_saida_fmt = formatar_data(data_saida)
 
     import re
-
     def limpar_texto(txt):
         return re.sub(r'[^a-zA-Z0-9]', '_', txt or "")
 
@@ -888,36 +1001,24 @@ def gerar_nota(id):
     pasta = "notas"
     os.makedirs(pasta, exist_ok=True)
 
-    caminho_base = os.path.join(pasta, nome_arquivo)
-
-    # 🔥 EVITA SOBRESCREVER
-    contador = 1
-    caminho = caminho_base
-
-    while os.path.exists(caminho):
-        nome_sem_ext = nome_arquivo.replace(".pdf", "")
-        caminho = os.path.join(pasta, f"{nome_sem_ext}_{contador}.pdf")
-        contador += 1
+    caminho = os.path.join(pasta, nome_arquivo)
 
     c = canvas.Canvas(caminho, pagesize=A4)
     largura, altura = A4
 
-    # 🔷 LOGO MAIOR
+    # 🔷 LOGO
     try:
         c.drawImage("static/logo_housecar.png", largura/2 - 110, altura - 110, width=220, height=80)
     except:
         pass
 
-    # 🔷 TÍTULO
     c.setFont("Helvetica-Bold", 16)
     c.drawCentredString(largura/2, altura - 130, "NOTA DE SERVIÇO")
 
     y = altura - 170
 
-    # 🔷 CAIXA CLIENTE COM DIVISÕES
+    # 🔷 CLIENTE
     c.rect(50, y - 80, 500, 80)
-
-    # linhas internas
     c.line(50, y - 30, 550, y - 30)
     c.line(50, y - 55, 550, y - 55)
 
@@ -928,19 +1029,17 @@ def gerar_nota(id):
 
     y -= 100
 
-    # 🔷 DATAS E MECÂNICO
+    # 🔷 DATAS
     c.rect(50, y - 40, 500, 40)
-
     c.drawString(60, y - 20, f"Entrada: {data_entrada_fmt}")
     c.drawString(220, y - 20, f"Saída: {data_saida_fmt}")
     c.drawString(380, y - 20, f"Mecânico: {mecanico or ''}")
 
     y -= 60
 
-    # 🔷 FUNÇÃO CAIXA TEXTO
+    # 🔷 TEXTO
     def caixa_texto(titulo, texto, altura_box):
         nonlocal y
-
         c.setFont("Helvetica-Bold", 10)
         c.drawString(50, y, titulo)
 
@@ -957,97 +1056,98 @@ def gerar_nota(id):
 
         y -= (altura_box + 20)
 
-    # 🔷 PROBLEMA
     caixa_texto("Problema Relatado:", problema, 50)
-
-    # 🔷 DIAGNÓSTICO
     caixa_texto("Diagnóstico Técnico / Solução:", diagnostico, 70)
 
-    # 🔷 CONFIGURAÇÃO DA TABELA
-    c.setFont("Helvetica", 9)
+    # 🔥 SEPARAR ITENS
+    pecas = []
+    servicos = []
 
-    col_qtd = 50
-    col_desc = 100
-    col_valor = 420
-    col_total = 550
+    for tipo, nome, valor, qtd in itens:
+        if tipo == "peca":
+            pecas.append((nome, valor, qtd))
+        else:
+            servicos.append((nome, valor, qtd))
 
-    largura_total = 500
-    altura_linha = 18
+    # 🔷 FUNÇÃO TABELA
+    def desenhar_tabela(titulo, lista):
+        nonlocal y
 
-    y -= 20
-    topo = y
+        if not lista:
+            return 0
 
-    # 🔷 CABEÇALHO COM FUNDO CINZA
-    c.setFillGray(0.85)
-    c.rect(50, y - altura_linha, largura_total, altura_linha, fill=1, stroke=0)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(50, y, titulo)
+        y -= 20
 
-    c.setFillColorRGB(0, 0, 0)
-    c.setFont("Helvetica-Bold", 10)
+        altura_linha = 18
+        x_inicio = 50
+        x_qtd = 100
+        x_desc = 420
+        x_fim = 550
 
-    # títulos centralizados
-    c.drawCentredString(75, y - 13, "QTD")
-    c.drawCentredString(260, y - 13, "DESCRIÇÃO")
-    c.drawCentredString(480, y - 13, "VALOR")
+        topo = y  # 🔥 guarda topo da tabela
 
-    # linhas verticais do cabeçalho
-    c.line(50, y, 50, y - altura_linha)
-    c.line(100, y, 100, y - altura_linha)
-    c.line(420, y, 420, y - altura_linha)
-    c.line(550, y, 550, y - altura_linha)
+        # 🔷 CABEÇALHO
+        c.setFillGray(0.85)
+        c.rect(x_inicio, y - altura_linha, x_fim - x_inicio, altura_linha, fill=1, stroke=1)
 
-    # linha inferior do cabeçalho
-    c.line(50, y - altura_linha, 550, y - altura_linha)
+        c.setFillColorRGB(0,0,0)
+        c.setFont("Helvetica-Bold", 10)
 
-    y -= altura_linha
-
-    # 🔷 LINHAS DOS ITENS
-    c.setFont("Helvetica", 9)
-
-    for item in itens:
-        nome, valor, qtd = item
-        total_item = float(valor) * int(qtd)
-
-        c.drawCentredString(75, y - 12, str(qtd))
-        c.drawString(105, y - 12, nome[:45])
-        c.drawRightString(540, y - 12, f"R$ {total_item:.2f}")
-
-        # linhas horizontais
-        c.line(50, y - altura_linha, 550, y - altura_linha)
-
-        # linhas verticais
-        c.line(50, y, 50, y - altura_linha)
-        c.line(100, y, 100, y - altura_linha)
-        c.line(420, y, 420, y - altura_linha)
-        c.line(550, y, 550, y - altura_linha)
+        c.drawCentredString(75, y - 13, "QTD")
+        c.drawCentredString(260, y - 13, "DESCRIÇÃO")
+        c.drawCentredString(480, y - 13, "VALOR")
 
         y -= altura_linha
 
-    # 🔷 LINHA DO TOTAL (DENTRO DA TABELA)
-    c.setFont("Helvetica-Bold", 11)
+        c.setFont("Helvetica", 9)
 
-    c.setFillGray(0.9)
-    c.rect(50, y - altura_linha, largura_total, altura_linha, fill=1, stroke=0)
+        subtotal = 0
 
-    c.setFillColorRGB(0, 0, 0)
+        # 🔷 LINHAS
+        for nome, valor, qtd in lista:
+            total_item = float(valor) * int(qtd)
+            subtotal += total_item
 
-    c.drawRightString(540, y - 12, f"TOTAL: R$ {total:.2f}")
+            c.drawCentredString(75, y - 12, str(qtd))
+            c.drawString(105, y - 12, nome[:45])
+            c.drawRightString(540, y - 12, f"R$ {total_item:.2f}")
 
-    # linhas finais
-    c.line(50, y - altura_linha, 550, y - altura_linha)
+            # linha horizontal
+            c.line(x_inicio, y - altura_linha, x_fim, y - altura_linha)
 
-    # bordas finais completas
-    c.line(50, topo, 550, topo)  # topo geral
-    c.line(50, topo, 50, y - altura_linha)  # esquerda
-    c.line(550, topo, 550, y - altura_linha)  # direita
+            y -= altura_linha
 
-   
+        # 🔥 BORDA COMPLETA
+        base = y
+
+        # laterais
+        c.line(x_inicio, topo, x_inicio, base)
+        c.line(x_qtd, topo, x_qtd, base)
+        c.line(x_desc, topo, x_desc, base)
+        c.line(x_fim, topo, x_fim, base)
+
+        # topo e base
+        c.line(x_inicio, topo, x_fim, topo)
+        c.line(x_inicio, base, x_fim, base)
+
+        y -= 15
+
+        return subtotal
+
+    total_pecas = desenhar_tabela("PEÇAS", pecas) or 0
+    total_servicos = desenhar_tabela("SERVIÇOS", servicos) or 0
+
+    y -= 10
+
+    # 🔷 TOTAL FINAL
+    c.setFont("Helvetica-Bold", 12)
+    c.drawRightString(540, y, f"TOTAL GERAL: R$ {total:.2f}")
+
     c.save()
 
-    return send_file(
-    caminho,
-    as_attachment=False,
-    download_name=os.path.basename(caminho)
-    )
+    return send_file(caminho, as_attachment=False)
 
 @app.route("/notas")
 def notas():
@@ -1084,6 +1184,9 @@ from datetime import datetime
 @app.route("/receitas", methods=["GET", "POST"])
 def receitas():
     if proteger(): return proteger()
+
+    from datetime import datetime
+
     if request.method == "POST":
         descricao = request.form.get("descricao")
         valor = float(request.form.get("valor") or 0)
@@ -1098,10 +1201,38 @@ def receitas():
             valor_final=valor,
             forma=forma,
             status=status,
-            data=datetime.now().strftime("%d/%m/%Y %H:%M")
+            data=datetime.now().strftime("%Y-%m-%d")
         )
 
-    dados = listar_receitas()
+    # 🔥 PAGINAÇÃO
+    pagina = int(request.args.get("pagina", 1))
+    por_pagina = 10
+    offset = (pagina - 1) * por_pagina
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # 🔢 TOTAL DE REGISTROS
+    cursor.execute("SELECT COUNT(*) FROM receitas")
+    total_registros = cursor.fetchone()[0]
+
+    # 📋 DADOS ORDENADOS E PAGINADOS
+    cursor.execute(f"""
+        SELECT * FROM receitas
+        ORDER BY 
+            CASE 
+                WHEN status = 'PENDENTE' THEN 1
+                ELSE 2
+            END,
+            data DESC
+        LIMIT {por_pagina} OFFSET {offset}
+    """)
+
+    dados = cursor.fetchall()
+    conn.close()
+
+    # 🔢 TOTAL DE PÁGINAS
+    total_paginas = (total_registros // por_pagina) + (1 if total_registros % por_pagina else 0)
 
     # 🔷 TOTAL GERAL (SÓ RECEBIDOS)
     total = sum([r[5] for r in dados if r[7] == "RECEBIDO"])
@@ -1119,7 +1250,9 @@ def receitas():
         total_pix=total_pix,
         total_dinheiro=total_dinheiro,
         total_debito=total_debito,
-        total_credito=total_credito
+        total_credito=total_credito,
+        pagina=pagina,
+        total_paginas=total_paginas
     )
 
 from banco import atualizar_receita
@@ -1166,22 +1299,51 @@ def despesas():
             valor,
             forma,
             status,
-            datetime.now().strftime("%d/%m/%Y %H:%M"),
-            vencimento
+            vencimento if vencimento else datetime.now().strftime("%Y-%m-%d"),
+            datetime.now().strftime("%Y-%m-%d")
         )
 
-    dados = listar_despesas()
+    # 🔥 PAGINAÇÃO
+    pagina = int(request.args.get("pagina", 1))
+    por_pagina = 10
+    offset = (pagina - 1) * por_pagina
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # 🔢 TOTAL DE REGISTROS
+    cursor.execute("SELECT COUNT(*) FROM despesas")
+    total_registros = cursor.fetchone()[0]
+
+    # 📋 DADOS PAGINADOS (PARA LISTA)
+    cursor.execute(f"""
+        SELECT * FROM despesas
+        ORDER BY 
+            CASE 
+                WHEN status = 'PENDENTE' THEN 1
+                ELSE 2
+            END,
+            vencimento ASC
+        LIMIT {por_pagina} OFFSET {offset}
+    """)
+    dados = cursor.fetchall()
+
+    # 🔥 PEGA TODOS OS DADOS PARA CALCULAR TOTAIS (SEM PAGINAÇÃO)
+    cursor.execute("SELECT * FROM despesas")
+    todos = cursor.fetchall()
+
+    conn.close()
+
+    total_paginas = (total_registros // por_pagina) + (1 if total_registros % por_pagina else 0)
 
     # 💸 TOTAL (SÓ PAGAS)
-    total = sum([d[2] for d in dados if d[4] == "PAGO"])
+    total = sum([d[2] for d in todos if d[4] == "PAGO"])
 
     # 💳 POR FORMA (SÓ PAGAS)
-    total_pix = sum([d[2] for d in dados if d[3] == "PIX" and d[4] == "PAGO"])
-    total_dinheiro = sum([d[2] for d in dados if d[3] == "DINHEIRO" and d[4] == "PAGO"])
-    total_debito = sum([d[2] for d in dados if d[3] == "DÉBITO" and d[4] == "PAGO"])
-    total_credito = sum([d[2] for d in dados if d[3] == "CRÉDITO" and d[4] == "PAGO"])
-
-    from datetime import datetime
+    total_pix = sum([d[2] for d in todos if d[3] == "PIX" and d[4] == "PAGO"])
+    total_dinheiro = sum([d[2] for d in todos if d[3] == "DINHEIRO" and d[4] == "PAGO"])
+    total_debito = sum([d[2] for d in todos if d[3] == "DÉBITO" and d[4] == "PAGO"])
+    total_credito = sum([d[2] for d in todos if d[3] == "CRÉDITO" and d[4] == "PAGO"])
 
     return render_template(
         "despesas.html",
@@ -1191,7 +1353,9 @@ def despesas():
         total_dinheiro=total_dinheiro,
         total_debito=total_debito,
         total_credito=total_credito,
-        hoje=datetime.now().strftime("%Y-%m-%d")  # 🔥 IMPORTANTE
+        pagina=pagina,
+        total_paginas=total_paginas,
+        hoje=datetime.now().strftime("%Y-%m-%d")
     )
 
 
@@ -1223,6 +1387,13 @@ def clientes():
         telefone = request.form.get("telefone")
         documento = request.form.get("documento")
         data_nascimento = request.form.get("data_nascimento")
+        logradouro = request.form.get("logradouro")
+        numero = request.form.get("numero")
+        bairro = request.form.get("bairro")
+        cidade = request.form.get("cidade")
+        uf = request.form.get("uf")
+        cep = request.form.get("cep")
+        email = request.form.get("email")
 
         veiculo = request.form.get("veiculo")
         placa = request.form.get("placa")
@@ -1255,9 +1426,15 @@ def clientes():
 
         # 🆕 cria novo cliente
         cursor.execute("""
-        INSERT INTO clientes (nome, telefone, documento, data_nascimento)
-        VALUES (?, ?, ?, ?)
-        """, (nome, telefone, documento, data_nascimento))
+        INSERT INTO clientes (
+            nome, telefone, documento, data_nascimento,
+            cep, logradouro, numero, bairro, cidade, uf, email
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            nome, telefone, documento, data_nascimento,
+            cep, logradouro, numero, bairro, cidade, uf, email
+        ))
 
         cliente_id = cursor.lastrowid
 
@@ -1327,14 +1504,27 @@ def editar_cliente(id):
     documento = request.form.get("documento")
     data_nascimento = request.form.get("data_nascimento")
 
+    cep = request.form.get("cep")
+    logradouro = request.form.get("logradouro")
+    numero = request.form.get("numero")
+    bairro = request.form.get("bairro")
+    cidade = request.form.get("cidade")
+    uf = request.form.get("uf")
+    email = request.form.get("email")
+
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
     UPDATE clientes
-    SET nome=?, telefone=?, documento=?, data_nascimento=?
+    SET nome=?, telefone=?, documento=?, data_nascimento=?,
+        cep=?, logradouro=?, numero=?, bairro=?, cidade=?, uf=?, email=?
     WHERE id=?
-    """, (nome, telefone, documento, data_nascimento, id))
+    """, (
+        nome, telefone, documento, data_nascimento,
+        cep, logradouro, numero, bairro, cidade, uf, email,
+        id
+    ))
 
     conn.commit()
     conn.close()
@@ -1506,7 +1696,7 @@ def registrar_pagamento():
     mecanico = request.form.get("mecanico")
     inicio = request.form.get("data_inicio")
     fim = request.form.get("data_fim")
-    valor = float(request.form.get("valor"))
+    valor = float(request.form.get("valor") or 0)
 
     from datetime import datetime
     data_pagamento = datetime.now().strftime("%Y-%m-%d")
@@ -1531,6 +1721,90 @@ def registrar_pagamento():
 
     return redirect("/pagamentos")
 
+@app.route("/excluir_pagamento/<int:id>")
+def excluir_pagamento(id):
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # 🔥 pega dados antes de apagar (pra achar a despesa)
+    cursor.execute("SELECT mecanico, valor, data_pagamento FROM pagamentos WHERE id = ?", (id,))
+    pagamento = cursor.fetchone()
+
+    if pagamento:
+        mecanico, valor, data = pagamento
+
+        # 🔥 remove pagamento
+        cursor.execute("DELETE FROM pagamentos WHERE id = ?", (id,))
+
+        # 🔥 remove despesa vinculada
+        cursor.execute("""
+        DELETE FROM despesas
+        WHERE descricao = ?
+        AND valor = ?
+        AND data = ?
+        """, (f"Pagamento mecânico - {mecanico}", valor, data))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/pagamentos")
+
+@app.route("/editar_pagamento/<int:id>")
+def editar_pagamento(id):
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    pagamento = cursor.execute("""
+        SELECT id, mecanico, data_inicio, data_fim, valor
+        FROM pagamentos
+        WHERE id = ?
+    """, (id,)).fetchone()
+
+    mecanicos = cursor.execute("SELECT nome FROM mecanicos").fetchall()
+
+    pagamentos = cursor.execute("""
+        SELECT id, mecanico, data_inicio, data_fim, valor
+        FROM pagamentos
+        ORDER BY id DESC
+    """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "pagamentos.html",
+        pagamento_editar=pagamento,
+        mecanicos=mecanicos,
+        pagamentos=pagamentos
+    )
+
+@app.route("/atualizar_pagamento", methods=["POST"])
+def atualizar_pagamento():
+    if proteger(): return proteger()
+
+    id = request.form.get("id")
+    mecanico = request.form.get("mecanico")
+    inicio = request.form.get("data_inicio")
+    fim = request.form.get("data_fim")
+    valor = float(request.form.get("valor") or 0)
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE pagamentos
+        SET mecanico=?, data_inicio=?, data_fim=?, valor=?
+        WHERE id=?
+    """, (mecanico, inicio, fim, valor, id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/pagamentos")
+
 @app.route("/estoque")
 def estoque():
     if proteger(): return proteger()   
@@ -1543,5 +1817,5 @@ def relatorios():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 

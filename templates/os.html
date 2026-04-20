@@ -15,29 +15,6 @@
     margin-bottom: 12px;
 }
 
-.secao h3 {
-    margin-bottom: 10px;
-}
-
-.secao-topo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.btn-add {
-    background: #06d6a0;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-add:hover {
-    background: #05b386;
-}
-
 .botoes {
     display:flex;
     gap:10px;
@@ -61,121 +38,112 @@
     text-decoration:none;
 }
 </style>
-
 </head>
 
 <body>
 
 {% include "_header.html" %}
 
-<form method="POST" action="/atualizar_os">
+<form method="POST" action="/os">
 
-<input type="hidden" name="ordem_id" value="{{ id }}">
+<input type="hidden" name="pecas_json" id="pecas_json">
+<input type="hidden" name="servicos_json" id="servicos_json">
+<input type="hidden" name="id" value="{{ id }}">
 
 <div class="secao">
     <h3>Dados do Cliente</h3>
 
     <div class="campo">
         <label>Nome do Cliente:</label>
-        <input type="text" name="cliente" value="{{ cliente }}">
+        <input type="text" name="cliente" value="{{ ordem[1] if ordem else '' }}">
+    </div>
+
+    <div class="item-campo">
+        <label>Telefone:</label>
+        <input type="text" name="telefone" value="{{ ordem[2] if ordem else '' }}">
     </div>
 
     <div class="campo">
         <label>Veículo:</label>
-        <input type="text" name="veiculo" value="{{ veiculo }}">
+        <input type="text" name="veiculo" value="{{ ordem[3] if ordem else '' }}">
     </div>
 
     <div class="campo">
         <label>Placa:</label>
-        <input type="text" name="placa" value="{{ placa }}">
+        <input type="text" name="placa" value="{{ ordem[4] if ordem else '' }}">
     </div>
 </div>
-
-{% if tipo == 'os' %}
 
 <div class="secao">
     <h3>Datas e Responsável</h3>
 
     <div class="campo">
         <label>Data de Entrada:</label>
-        <input type="date" name="data_entrada" value="{{ data_entrada }}">
+        <input type="date" name="data_entrada" value="{{ ordem[11] if ordem else '' }}">
     </div>
 
     <div class="campo">
         <label>Data de Saída:</label>
-        <input type="date" name="data_saida" value="{{ data_saida }}">
+        <input type="date" name="data_saida" value="{{ ordem[12] if ordem else '' }}">
     </div>
 
     <div class="campo">
         <label>Mecânico:</label>
         <select name="mecanico">
             <option value="">Selecione</option>
-
             {% for m in mecanicos %}
-                <option value="{{ m[1] }}" {% if mecanico == m[1] %}selected{% endif %}>
+                <option value="{{ m[1] }}" {% if ordem and ordem[10] == m[1] %}selected{% endif %}>
                     {{ m[1] }}
                 </option>
             {% endfor %}
         </select>
     </div>
 </div>
-
-{% else %}
-
-<div class="secao">
-    <h3>Orçamento</h3>
-
-    <div class="campo">
-        <label>Data do Orçamento:</label>
-        <input type="text" value="{% if data_entrada %}{{ data_entrada[8:10] }}/{{ data_entrada[5:7] }}/{{ data_entrada[0:4] }}{% else %}-{% endif %}" readonly>
-    </div>
-
-    <div class="campo">
-        <label>Validade:</label>
-        <input type="text" value="5 dias" readonly>
-    </div>
-
-    <div class="campo">
-        <label>Mecânico:</label>
-        <select name="mecanico">
-            <option value="">Selecione</option>
-
-            {% for m in mecanicos %}
-                <option value="{{ m[1] }}" {% if mecanico == m[1] %}selected{% endif %}>
-                    {{ m[1] }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
-</div>
-
-{% endif %}
 
 <div class="secao">
     <h3>Diagnóstico</h3>
 
     <div class="campo">
         <label>Problema:</label>
-        <textarea name="problema">{{ problema }}</textarea>
+        <textarea name="problema">{{ ordem[5] if ordem else '' }}</textarea>
     </div>
 
     <div class="campo">
         <label>Solução:</label>
-        <textarea name="diagnostico">{{ diagnostico }}</textarea>
+        <textarea name="diagnostico">{{ ordem[6] if ordem else '' }}</textarea>
     </div>
 </div>
 
 <h3>🔧 Peças</h3>
+<div id="tabela_pecas"></div>
 
-<button type="button" class="btn-novo" onclick="addPeca()">+ Peça</button>
+<div class="secao">
+    <input type="text" id="peca_nome" placeholder="Descrição">
+    <input type="number" id="peca_qtd" value="1">
+    <input type="number" id="peca_valor" step="0.01" placeholder="Valor">
 
-<div id="lista_pecas"></div>
+    <button type="button" onclick="adicionarPeca()" class="btn-principal">
+        + Adicionar Peça
+    </button>
+</div>
 
 <h3>🛠 Serviços</h3>
+<div id="tabela_servicos"></div>
 
-<button type="button" class="btn-novo" onclick="addServico()">+ Serviço</button>
+<div class="secao">
+    <input type="text" id="servico_nome" placeholder="Descrição">
+    <input type="number" id="servico_qtd" value="1">
+    <input type="number" id="servico_valor" step="0.01" placeholder="Valor">
 
-<div id="lista_servicos"></div>
+    <label>
+        <input type="checkbox" id="servico_comissao">
+        Comissão
+    </label>
+
+    <button type="button" onclick="adicionarServico()" class="btn-principal">
+        + Adicionar Serviço
+    </button>
+</div>
 
 <h3>TOTAL: R$ <span id="total_geral">0.00</span></h3>
 
@@ -183,24 +151,27 @@
     <div class="campo">
         <label>Status:</label>
         <select name="status">
-            <option value="EM ANDAMENTO" {% if status == "EM ANDAMENTO" %}selected{% endif %}>EM ANDAMENTO</option>
-            <option value="AGUARDANDO PEÇAS" {% if status == "AGUARDANDO PEÇAS" %}selected{% endif %}>AGUARDANDO PEÇAS</option>
-            <option value="PENDENTE" {% if status == "PENDENTE" %}selected{% endif %}>PENDENTE</option>
-            <option value="FINALIZADA" {% if status == "FINALIZADA" %}selected{% endif %}>FINALIZADA</option>
+            <option value="EM ANDAMENTO" {% if ordem and ordem[9]=='EM ANDAMENTO' %}selected{% endif %}>EM ANDAMENTO</option>
+            <option value="AGUARDANDO PEÇAS" {% if ordem and ordem[9]=='AGUARDANDO PEÇAS' %}selected{% endif %}>AGUARDANDO PEÇAS</option>
+            <option value="PENDENTE" {% if ordem and ordem[9]=='PENDENTE' %}selected{% endif %}>PENDENTE</option>
+            <option value="FINALIZADA" {% if ordem and ordem[9]=='FINALIZADA' %}selected{% endif %}>FINALIZADA</option>
         </select>
     </div>
 </div>
 
 <div class="botoes">
-    <button type="submit" class="btn-principal">💾 Atualizar OS</button>
+    <button type="submit" class="btn-principal">
+        💾 Salvar OS
+    </button>
 
     {% if id and id != 0 %}
     <a href="/gerar_nota/{{ id }}" target="_blank" class="btn-secundario">
         📄 Gerar / Abrir Nota
     </a>
+
     <a href="/cancelar_os/{{ id }}" 
-        onclick="return confirm('Deseja realmente cancelar esta OS?')"
-        style="background:#dc2626; color:white; padding:10px; border-radius:8px; text-decoration:none;">
+       onclick="return confirm('Deseja realmente cancelar esta OS?')"
+       style="background:#dc2626; color:white; padding:10px; border-radius:8px; text-decoration:none;">
         ❌ Cancelar OS
     </a>
     {% endif %}
@@ -209,151 +180,223 @@
 </form>
 
 <script>
-let indexServico = 0;
 
-function addPeca(){
-    let div = document.createElement("div");
-    div.classList.add("linha-item");
+let pecas = [];
 
-    div.innerHTML = `
-        <div class="campo-full">
-            <label>Descrição</label>
-            <input name="peca_nome">
-        </div>
+function adicionarPeca() {
+    let nome = document.getElementById("peca_nome")?.value;
+    let qtd = parseFloat(document.getElementById("peca_qtd")?.value || 1);
+    let valor = parseFloat(document.getElementById("peca_valor")?.value || 0);
 
-        <div class="linha-valores">
+    console.log("DEBUG:", nome, qtd, valor);
 
-            <div class="item-campo">
-                <label>Qtde</label>
-                <input type="number" name="peca_qtd" value="1" oninput="calcularLinha(this)">
-            </div>
+    if (!nome) {
+        alert("Digite a descrição da peça");
+        return;
+    }
 
-            <div class="item-campo">
-                <label>Valor Unit.</label>
-                <input type="number" step="0.01" name="peca_valor" oninput="calcularLinha(this)">
-            </div>
+    pecas.push({ nome, qtd, valor });
 
-            <div class="item-campo">
-                <label>Total</label>
-                <input type="text" readonly>
-            </div>
-
-            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove(); calcularTotalGeral();">
-            🗑 Excluir
-            </button>
-
-        </div>
-    `;
-
-    document.getElementById("lista_pecas").appendChild(div);
+    renderPecas();
 }
 
-function addServico(){
-    let i = indexServico++;
-
-    let div = document.createElement("div");
-    div.classList.add("linha-item");
-
-    div.innerHTML = `
-        <div class="campo-full">
-            <label>Descrição</label>
-            <input name="servico_nome_${i}">
-        </div>
-
-        <div class="linha-valores">
-
-            <div class="item-campo">
-                <label>Qtde</label>
-                <input type="number" name="servico_qtd_${i}" value="1" oninput="calcularLinha(this)">
-            </div>
-
-            <div class="item-campo">
-                <label>Valor Unit.</label>
-                <input type="number" step="0.01" name="servico_valor_${i}" oninput="calcularLinha(this)">
-            </div>
-
-            <div class="item-campo">
-                <label>Total</label>
-                <input type="text" readonly>
-            </div>
-
-            <div class="item-campo">
-                <label>Comissão</label>
-                <input type="checkbox" name="servico_comissao_${i}">
-            </div>
-
-            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove(); calcularTotalGeral();">
-            🗑 Excluir
-            </button>
-
-        </div>
+function renderPecas() {
+    let html = `
+    <table class="tabela-pecas">
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Qtd</th>
+                <th>Valor</th>
+                <th>Total</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
     `;
 
-    document.getElementById("lista_servicos").appendChild(div);
-}
+    let total = 0;
 
-function calcularLinha(el){
-    let linha = el.closest('.linha-item');
+    pecas.forEach((p, i) => {
+        let t = p.qtd * p.valor;
+        total += t;
 
-    let qtd = linha.querySelector('input[name*="qtd"]');
-    let valor = linha.querySelector('input[name*="valor"]');
-    let total = linha.querySelector('input[readonly]');
+        html += `
+            <tr style="text-align:center; border-bottom:1px solid #ddd;">
+                <td style="padding:8px;">${p.nome}</td>
+                <td>${p.qtd}</td>
+                <td>R$ ${p.valor.toFixed(2)}</td>
+                <td>R$ ${t.toFixed(2)}</td>
+                <td>
+                    <button type="button" class="btn-acao" onclick="editarPeca(${i})">✏️</button>
 
-    let q = parseFloat(qtd.value || 0);
-    let v = parseFloat(valor.value || 0);
+                    <button type="button" class="btn-acao btn-remove" onclick="removerPeca(${i})">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
 
-    let resultado = q * v;
+    html += `
+            </tbody>
+        </table>
+    `;
 
-    total.value = resultado.toFixed(2);
-
+    document.getElementById("tabela_pecas").innerHTML = html;
+    document.getElementById("total_geral").innerText = total.toFixed(2);
+    document.getElementById("pecas_json").value = JSON.stringify(pecas);
     calcularTotalGeral();
+}
+
+function removerPeca(index){
+    pecas.splice(index, 1);
+    renderPecas();
+}
+
+function editarPeca(index){
+    let p = pecas[index];
+
+    document.getElementById("peca_nome").value = p.nome;
+    document.getElementById("peca_qtd").value = p.qtd;
+    document.getElementById("peca_valor").value = p.valor;
+
+    pecas.splice(index, 1);
+
+    renderPecas();
+}
+
+let servicos = [];
+
+function adicionarServico(){
+    let nome = document.getElementById("servico_nome").value;
+    let qtd = parseFloat(document.getElementById("servico_qtd").value || 1);
+    let valor = parseFloat(document.getElementById("servico_valor").value || 0);
+    let comissao = document.getElementById("servico_comissao").checked;
+
+    if(!nome){
+        alert("Digite o serviço");
+        return;
+    }
+
+    servicos.push({nome, qtd, valor, comissao});
+
+    document.getElementById("servico_nome").value = "";
+    document.getElementById("servico_qtd").value = 1;
+    document.getElementById("servico_valor").value = "";
+    document.getElementById("servico_comissao").checked = false;
+
+    console.log(servicos);
+    renderServicos();
+}
+
+function renderServicos(){
+    let html = `
+        <table class="tabela-pecas">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Qtd</th>
+                    <th>Valor</th>
+                    <th>Total</th>
+                    <th>Comissão</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    servicos.forEach((s, i) => {
+        let total = s.qtd * s.valor;
+
+        html += `
+            <tr>
+                <td>${s.nome}</td>
+                <td>${s.qtd}</td>
+                <td>R$ ${s.valor.toFixed(2)}</td>
+                <td>R$ ${total.toFixed(2)}</td>
+                <td>${s.comissao ? "✔" : "-"}</td>
+                <td>
+                    <button type="button" class="btn-acao" onclick="editarServico(${i})">✏️</button>
+                    <button type="button" class="btn-acao btn-remove" onclick="removerServico(${i})">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += "</tbody></table>";
+
+    document.getElementById("tabela_servicos").innerHTML = html;
+    document.getElementById("servicos_json").value = JSON.stringify(servicos);
+}
+
+function removerServico(index){
+    servicos.splice(index, 1);
+    renderServicos();
+}
+
+function editarServico(index){
+    let s = servicos[index];
+
+    document.getElementById("servico_nome").value = s.nome;
+    document.getElementById("servico_qtd").value = s.qtd;
+    document.getElementById("servico_valor").value = s.valor;
+    document.getElementById("servico_comissao").checked = s.comissao;
+
+    servicos.splice(index, 1);
+
+    renderServicos();
 }
 
 function calcularTotalGeral(){
     let total = 0;
 
-    document.querySelectorAll('#lista_pecas .linha-item').forEach(linha => {
-        let t = linha.querySelector('input[readonly]').value;
-        total += parseFloat(t || 0);
-    });
+    // 🧩 PEÇAS (novo)
+    if (typeof pecas !== "undefined") {
+        pecas.forEach(p => {
+            total += p.qtd * p.valor;
+        });
+    }
 
-    document.querySelectorAll('#lista_servicos .linha-item').forEach(linha => {
-        let t = linha.querySelector('input[readonly]').value;
-        total += parseFloat(t || 0);
-    });
+    if (typeof servicos !== "undefined") {
+        servicos.forEach(s => {
+            total += s.qtd * s.valor;
+        });
+    }
 
     document.getElementById("total_geral").innerText = total.toFixed(2);
 }
 
 window.onload = function(){
 
-    let pecas = JSON.parse('{{ pecas | tojson | safe }}');
-    pecas.forEach(p => {
-        addPeca();
-        let ultima = document.querySelector('#lista_pecas .linha-item:last-child');
+    // 🔧 PEÇAS (NOVO PADRÃO)
+    let dados = JSON.parse('{{ pecas | tojson | safe }}');
 
-        ultima.querySelector('[name="peca_nome"]').value = p[0];
-        ultima.querySelector('[name="peca_valor"]').value = p[1];
-        ultima.querySelector('[name="peca_qtd"]').value = p[2];
+    pecas = [];
 
-        calcularLinha(ultima);
+    dados.forEach(p=>{
+        pecas.push({
+            nome:p[0],
+            valor:parseFloat(p[1]),
+            qtd:parseFloat(p[2])
+        });
     });
 
-    let servicos = JSON.parse('{{ servicos | tojson | safe }}');
-    servicos.forEach(s => {
-        addServico();
-        let ultima = document.querySelector('#lista_servicos .linha-item:last-child');
+    renderPecas();
 
-        ultima.querySelector('[name^="servico_nome"]').value = s[0];
-        ultima.querySelector('[name^="servico_valor"]').value = s[1];
-        ultima.querySelector('[name^="servico_qtd"]').value = s[2];
-        ultima.querySelector('[type="checkbox"]').checked = s[3];
+    // 🛠 SERVIÇOS (NOVO PADRÃO)
+    let dadosServicos = JSON.parse('{{ servicos | tojson | safe }}');
 
-        calcularLinha(ultima);
+    servicos = [];
+
+    dadosServicos.forEach(s => {
+        servicos.push({
+            nome: s[0],
+            valor: parseFloat(s[1]),
+            qtd: parseFloat(s[2]),
+            comissao: s[3]
+        });
     });
 
-    // 🔥 CORREÇÕES IMPORTANTES
-    indexServico = servicos.length;
+    renderServicos();
     calcularTotalGeral();
 }
 </script>

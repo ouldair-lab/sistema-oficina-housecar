@@ -8,13 +8,6 @@
 <link rel="stylesheet" href="/static/style.css">
 
 <style>
-.card {
-    background: #1e3a8a;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-}
-
 .topo-padrao {
     display: flex;
     justify-content: space-between;
@@ -22,17 +15,66 @@
     margin: 15px 0;
 }
 
-.btn-novo {
+.btn-add {
     background: #06d6a0;
     padding: 10px 14px;
     border-radius: 8px;
-    border: none;
     font-weight: bold;
+    border: none;
 }
 
-.form-editar {
-    margin-top: 10px;
+.tabela-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #1e3a8a;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+.btn-acao {
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-edit {
+    background: #2563eb;
+}
+
+.btn-del {
+    background: #dc2626;
+}
+
+.modal {
     display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    color: black;
+    padding: 15px;
+    border-radius: 15px 15px 0 0;
 }
 </style>
 
@@ -44,71 +86,100 @@
 
 <div class="topo-padrao">
     <h3>🔧 Mecânicos</h3>
-    <button class="btn-novo" onclick="toggleForm()">+ Mecânico</button>
+    <button class="btn-add" onclick="abrirModal()">+ Mecânico</button>
 </div>
 
-<!-- FORM NOVO -->
-<div id="formMecanico" style="display:none;">
-<form method="POST">
+<div class="tabela-container">
+<table>
+<tr>
+    <th>Nome</th>
+    <th>Comissão Padrão</th>
+    <th>Comissão Baixa</th>
+    <th>Limite</th>
+    <th>Ações</th>
+</tr>
 
-    <input name="nome" placeholder="Nome" required>
-    <input name="comissao_padrao" placeholder="Comissão padrão (ex: 0.4)" required>
-    <input name="comissao_baixa" placeholder="Comissão baixa (ex: 0.7)" required>
-    <input name="limite_baixa" placeholder="Limite (ex: 50)" required>
+{% for m in mecanicos %}
+<tr>
+    <td>{{ m[1] }}</td>
+    <td>{{ m[2] }}</td>
+    <td>{{ m[3] }}</td>
+    <td>R$ {{ m[4] }}</td>
+
+    <td>
+        <button class="btn-acao btn-edit"
+            data-id="{{ m[0] }}"
+            data-nome="{{ m[1] }}"
+            data-padrao="{{ m[2] }}"
+            data-baixa="{{ m[3] }}"
+            data-limite="{{ m[4] }}"
+            onclick="abrirEdit(this)">
+            ✏️
+        </button>
+
+        <a href="/excluir_mecanico/{{ m[0] }}"
+           class="btn-acao btn-del"
+           onclick="return confirm('Excluir mecânico?')">
+           🗑️
+        </a>
+    </td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+<form method="POST" id="formMecanico">
+
+    <h3 id="tituloModal">Novo Mecânico</h3>
+
+    <input type="hidden" id="edit_id">
+
+    <input name="nome" id="edit_nome" placeholder="Nome" required>
+    <input name="comissao_padrao" id="edit_padrao" placeholder="Comissão padrão (ex: 0.4)" required>
+    <input name="comissao_baixa" id="edit_baixa" placeholder="Comissão baixa (ex: 0.7)" required>
+    <input name="limite_baixa" id="edit_limite" placeholder="Limite (ex: 50)" required>
 
     <button type="submit">Salvar</button>
+    <button type="button" onclick="fecharModal()">Cancelar</button>
 
 </form>
 </div>
 
-<!-- LISTA -->
-{% for m in mecanicos %}
-<div class="card">
-
-    <strong>{{ m[1] }}</strong><br>
-    Comissão padrão: {{ m[2] }}<br>
-    Comissão baixa: {{ m[3] }}<br>
-    Limite: R$ {{ m[4] }}
-
-    <br><br>
-
-    <button data-id="{{ m[0] }}" onclick="toggleEditar(this)">✏️ Editar</button>
-
-    <a href="/excluir_mecanico/{{ m[0] }}"
-       onclick="return confirm('Excluir mecânico?')"
-       style="color:red;">
-       🗑 Excluir
-    </a>
-
-    <!-- FORM EDITAR -->
-    <div id="editar{{ m[0] }}" class="form-editar">
-
-        <form method="POST" action="/editar_mecanico/{{ m[0] }}">
-
-            <input name="nome" value="{{ m[1] }}">
-            <input name="comissao_padrao" value="{{ m[2] }}">
-            <input name="comissao_baixa" value="{{ m[3] }}">
-            <input name="limite_baixa" value="{{ m[4] }}">
-
-            <button type="submit">💾 Salvar</button>
-
-        </form>
-
-    </div>
-
-</div>
-{% endfor %}
-
 <script>
-function toggleForm(){
-    let f = document.getElementById("formMecanico");
-    f.style.display = f.style.display === "none" ? "block" : "none";
+function abrirModal(){
+    document.getElementById("modal").style.display="block";
+
+    document.getElementById("formMecanico").action = "/mecanicos";
+    document.getElementById("tituloModal").innerText = "Novo Mecânico";
+
+    limparCampos();
 }
 
-function toggleEditar(btn){
-    let id = btn.getAttribute("data-id");
-    let f = document.getElementById("editar" + id);
-    f.style.display = f.style.display === "none" ? "block" : "none";
+function fecharModal(){
+    document.getElementById("modal").style.display="none";
+}
+
+function limparCampos(){
+    document.getElementById("edit_nome").value = "";
+    document.getElementById("edit_padrao").value = "";
+    document.getElementById("edit_baixa").value = "";
+    document.getElementById("edit_limite").value = "";
+}
+
+function abrirEdit(btn){
+    document.getElementById("modal").style.display="block";
+
+    let id = btn.dataset.id;
+
+    document.getElementById("formMecanico").action = "/editar_mecanico/" + id;
+    document.getElementById("tituloModal").innerText = "Editar Mecânico";
+
+    document.getElementById("edit_nome").value = btn.dataset.nome;
+    document.getElementById("edit_padrao").value = btn.dataset.padrao;
+    document.getElementById("edit_baixa").value = btn.dataset.baixa;
+    document.getElementById("edit_limite").value = btn.dataset.limite;
 }
 </script>
 

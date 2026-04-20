@@ -42,22 +42,58 @@
 </div>
 
 <!-- FORM -->
-<div id="formPagamento" style="display:none;">
-<form method="POST">
+<div id="formPagamento" 
+{% if pagamento_editar %}
+    style="display:block;"
+{% else %}
+    style="display:none;"
+{% endif %}
+>
+<form method="POST" action="/pagamentos">
 
     <select name="mecanico" required>
         <option value="">Selecione Mecânico</option>
         {% for m in mecanicos %}
-            <option value="{{ m[1] }}">{{ m[1] }}</option>
+            <option value="{{ m[1] }}"
+            {% if pagamento_editar and pagamento_editar[1] == m[1] %}selected{% endif %}>
+            {{ m[1] }}
+            </option>
         {% endfor %}
     </select>
 
-    <input type="date" name="data_inicio" required>
-    <input type="date" name="data_fim" required>
+    <input type="date" name="data_inicio" value="{{ pagamento_editar[2] if pagamento_editar else '' }}">
+    <input type="date" name="data_fim" value="{{ pagamento_editar[3] if pagamento_editar else '' }}">
+    <input type="number" name="valor" step="0.01" value="{{ pagamento_editar[4] if pagamento_editar else '' }}">
+    {% if pagamento_editar %}
+        <input type="hidden" name="id" value="{{ pagamento_editar[0] }}">
+    {% endif %}
 
     <button type="submit">Calcular</button>
 
 </form>
+
+{% if pagamento_editar %}
+<form method="POST" action="/atualizar_pagamento">
+
+    <input type="hidden" name="id" value="{{ pagamento_editar[0] }}">
+
+    <select name="mecanico">
+        {% for m in mecanicos %}
+            <option value="{{ m[1] }}"
+            {% if pagamento_editar[1] == m[1] %}selected{% endif %}>
+            {{ m[1] }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <input type="date" name="data_inicio" value="{{ pagamento_editar[2] }}">
+    <input type="date" name="data_fim" value="{{ pagamento_editar[3] }}">
+    <input type="number" name="valor" step="0.01" value="{{ pagamento_editar[4] }}">
+
+    <button type="submit">Atualizar Pagamento</button>
+
+</form>
+{% endif %}
 </div>
 
 {% if resultado %}
@@ -88,21 +124,41 @@
 {% endif %}
 
 <!-- LISTA -->
-{% for p in pagamentos %}
-<div class="card">
+<div class="tabela-container">
+<table>
+    <tr>
+        <th>Mecânico</th>
+        <th>Período</th>
+        <th>Valor</th>
+        <th>Ações</th>
+    </tr>
 
-    <strong>{{ p[1] }}</strong><br>
+    {% for p in pagamentos %}
+    <tr>
+        <td>{{ p[1] }}</td>
 
-    Período:
-    {{ p[2][8:10] }}/{{ p[2][5:7] }}/{{ p[2][0:4] }}
-    até
-    {{ p[3][8:10] }}/{{ p[3][5:7] }}/{{ p[3][0:4] }}
+        <td>
+            {{ formatar_data(p[2]) }}
+            até
+            {{ formatar_data(p[3]) }}
+        </td>
 
-    <br>
-    Valor: R$ {{ p[4] }}
+        <td>R$ {{ p[4] }}</td>
 
+        <td>
+            <a href="/editar_pagamento/{{ p[0] }}" class="btn-acao">✏️</a>
+
+            <a href="/excluir_pagamento/{{ p[0] }}"
+               class="btn-acao"
+               style="background:#dc2626; margin-left:5px;"
+               onclick="return confirm('Excluir este pagamento?')">
+               🗑️
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 </div>
-{% endfor %}
 
 <script>
 function toggleForm(){

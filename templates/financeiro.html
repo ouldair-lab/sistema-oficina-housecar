@@ -48,6 +48,14 @@
 .btn-despesas:hover {
     background: #b91c1c;
 }
+
+.saldo-positivo {
+    color: #22c55e;
+}
+
+.saldo-negativo {
+    color: #ef4444;
+}
 </style>
 
 </head>
@@ -58,6 +66,23 @@
 {% include "_header.html" %}
 
 <div class="titulo">💰 Financeiro</div>
+
+<div style="background:#1e3a8a; padding:15px; border-radius:10px; margin-bottom:20px;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+
+        <div>
+            📈 Receitas: <strong>R$ {{ "%.2f"|format(receitas) }}</strong><br>
+            📉 Despesas: <strong>R$ {{ "%.2f"|format(despesas) }}</strong>
+        </div>
+
+        <div class="{{ 'saldo-negativo' if saldo < 0 else 'saldo-positivo' }}">
+            💰 Saldo: R$ {{ "%.2f"|format(saldo) }}
+        </div>
+
+    </div>
+
+</div>
 
 <div class="container">
 

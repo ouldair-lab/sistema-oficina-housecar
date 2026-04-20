@@ -149,3 +149,112 @@ button:hover {
 .btn-logout:hover {
     background: #b91c1c;
 }
+
+.btn-acao {
+    width: auto;
+    padding: 5px 8px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;
+}
+
+.tabela-pecas {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    color: black;
+}
+
+.tabela-pecas th {
+    background: #1e3a8a;
+    color: white;
+    padding: 8px;
+}
+
+.tabela-pecas td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn-acao {
+    width: auto !important;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+td button {
+    width: auto;
+}
+
+.btn-add {
+    background: #06d6a0;
+    color: #000;
+}
+
+.btn-add-full {
+    width: 100%;
+    background: #06d6a0;
+    color: #000;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.btn-principal {
+    background: #06d6a0 !important;
+    color: #000 !important;
+}
+
+/* STATUS COLORS */
+
+.status {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+/* 🔵 EM ANDAMENTO */
+.status.andamento {
+    background: #3b82f6;
+    color: white;
+}
+
+/* 🟡 AGUARDANDO PEÇAS */
+.status.aguardando {
+    background: #facc15;
+    color: black;
+}
+
+/* 🟠 PENDENTE */
+.status.pendente {
+    background: #f97316;
+    color: white;
+}
+
+/* 🟢 FINALIZADA */
+.status.finalizada {
+    background: #22c55e;
+    color: white;
+}
+
+/* 🔴 CANCELADA */
+.status.cancelada {
+    background: #ef4444;
+    color: white;
+}
+
+.status {
+    box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}

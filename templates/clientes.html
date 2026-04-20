@@ -5,35 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Clientes</title>
-
 <link rel="stylesheet" href="/static/style.css">
 
 <style>
 .card {
     background: #1e3a8a;
-    padding: 12px;
+    padding: 14px;
     border-radius: 10px;
-    margin-bottom: 12px;
-}
-
-.veiculos {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255,255,255,0.2);
-}
-
-.veiculo-item {
-    font-size: 14px;
-    margin-bottom: 8px;
-}
-
-.btn-add {
-    margin-top: 8px;
-    background: #06d6a0;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 13px;
+    margin-bottom: 14px;
 }
 
 .topo-padrao {
@@ -50,6 +29,58 @@
     border: none;
     font-weight: bold;
 }
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 6px;
+}
+
+.input-group input {
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+}
+
+.linha {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.linha input {
+    flex: 1;
+}
+
+.btn-acao {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    color: white;
+    font-size: 13px;
+}
+
+.btn-salvar {
+    background: #16a34a;
+}
+
+.btn-del {
+    background: #dc2626;
+    text-decoration: none;
+}
+
+.veiculos {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.veiculo-box {
+    background: rgba(255,255,255,0.1);
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
 </style>
 
 </head>
@@ -63,19 +94,86 @@
     <button class="btn-novo" onclick="toggleForm()">+ Cliente</button>
 </div>
 
-<!-- FORM NOVO CLIENTE -->
+<!-- FORM NOVO -->
 <div id="formCliente" style="display:none;">
-<form method="POST">
+<form method="POST" onsubmit="return validarForm(this)">
 
-    <input name="nome" placeholder="Nome" required>
-    <input name="telefone" placeholder="Telefone" required>
-    <input name="documento" placeholder="CPF ou CNPJ">
-    <input name="data_nascimento" type="date">
+    <!-- DADOS PRINCIPAIS -->
+    <div class="linha">
+        <div class="input-group">
+            <label>Nome Completo</label>
+            <input name="nome" required>
+        </div>
 
-    <input name="veiculo" placeholder="Veículo">
-    <input name="placa" placeholder="Placa">
+        <div class="input-group">
+            <label>Telefone</label>
+            <input name="telefone" onkeyup="mascaraTelefone(this)" required>
+        </div>
+    </div>
 
-    <button type="submit">Salvar</button>
+    <div class="linha">
+        <div class="input-group">
+            <label>CPF/CNPJ</label>
+            <input name="documento" onkeyup="mascaraDocumento(this)">
+        </div>
+
+        <div class="input-group">
+            <label>E-mail</label>
+            <input name="email">
+        </div>
+    </div>
+
+    <!-- ENDEREÇO -->
+    <div class="linha">
+        <div class="input-group">
+            <label>CEP</label>
+            <input name="cep" onkeyup="mascaraCEP(this)" onblur="buscarCEP(this)">
+        </div>
+
+        <div class="input-group">
+            <label>Número</label>
+            <input name="numero">
+        </div>
+    </div>
+
+    <div class="linha">
+        <div class="input-group" style="width:100%;">
+            <label>Logradouro (Rua / Quadra)</label>
+            <input name="logradouro">
+        </div>
+    </div>
+
+    <div class="linha">
+        <div class="input-group">
+            <label>Bairro</label>
+            <input name="bairro">
+        </div>
+
+        <div class="input-group">
+            <label>Cidade</label>
+            <input name="cidade">
+        </div>
+
+        <div class="input-group">
+            <label>UF</label>
+            <input name="uf" maxlength="2">
+        </div>
+    </div>
+
+    <!-- VEÍCULO -->
+    <div class="linha">
+        <div class="input-group">
+            <label>Veículo</label>
+            <input name="veiculo">
+        </div>
+
+        <div class="input-group">
+            <label>Placa</label>
+            <input name="placa">
+        </div>
+    </div>
+
+    <button class="btn-acao btn-salvar">💾 Salvar</button>
 
 </form>
 </div>
@@ -93,13 +191,20 @@
                 "telefone": c[2],
                 "documento": c[3],
                 "data": c[4],
+                "cep": c[5],
+                "logradouro": c[6],
+                "numero": c[7],
+                "bairro": c[8],
+                "cidade": c[9],
+                "uf": c[10],
+                "email": c[11],
                 "veiculos": []
             }
         }) %}
     {% endif %}
 
-    {% if c[5] %}
-        {% set _ = clientes_agrupados[id]["veiculos"].append((c[5], c[6], c[7])) %}
+    {% if c[12] %}
+        {% set _ = clientes_agrupados[id]["veiculos"].append((c[12], c[13], c[14])) %}
     {% endif %}
 {% endfor %}
 
@@ -107,51 +212,132 @@
 {% for id, c in clientes_agrupados.items() %}
 <div class="card">
 
-    <div><strong>NOME:</strong> {{ c["nome"] }}</div>
-    <div><strong>TELEFONE:</strong> {{ c["telefone"] }}</div>
-    <div><strong>CPF/CNPJ:</strong> {{ c["documento"] or '-' }}</div>
+    <!-- DADOS -->
+    <div><strong>👤 {{ c["nome"] }}</strong></div>
+    <div>📞 {{ c["telefone"] }}</div>
+    <div>🆔 {{ c["documento"] or '-' }}</div>
 
-    <div><strong>🎂 NASCIMENTO:</strong>
-        {{ c["data"][8:10] ~ '/' ~ c["data"][5:7] ~ '/' ~ c["data"][0:4] if c["data"] else '-' }}
+    <div style="margin-top:5px;">
+        📍 {{ c["logradouro"] or "" }}, {{ c["numero"] or "s/n" }}<br>
+        {{ c["bairro"] or "" }} - {{ c["cidade"] or "" }}/{{ c["uf"] or "" }}<br>
+        CEP: {{ c["cep"] or "-" }}
     </div>
 
+    <div>✉️ {{ c["email"] or '-' }}</div>
+    <div>🎂 {{ formatar_data(c["data"]) or '-' }}</div>
+
     <!-- EDITAR CLIENTE -->
-    <form method="POST" action="/editar_cliente/{{ id }}">
-        <input name="nome" value="{{ c['nome'] }}">
-        <input name="telefone" value="{{ c['telefone'] }}">
-        <input name="documento" value="{{ c['documento'] }}">
-        <input name="data_nascimento" type="date" value="{{ c['data'] }}">
+    <form method="POST" action="/editar_cliente/{{ id }}" onsubmit="return validarForm(this)">
 
-        <button type="submit">💾 Salvar</button>
+        <div class="linha">
+            <div class="input-group">
+                <label>Nome</label>
+                <input name="nome" value="{{ c['nome'] }}">
+            </div>
+
+            <div class="input-group">
+                <label>Telefone</label>
+                <input name="telefone" value="{{ c['telefone'] }}" onkeyup="mascaraTelefone(this)">
+            </div>
+        </div>
+
+        <div class="linha">
+            <div class="input-group">
+                <label>CPF/CNPJ</label>
+                <input name="documento" value="{{ c['documento'] }}" onkeyup="mascaraDocumento(this)">
+            </div>
+
+            <div class="input-group">
+                <label>Data de Nascimento</label>
+                <input name="data_nascimento" type="date" value="{{ c['data'] }}">
+            </div>
+        </div>
+
+        <!-- ENDEREÇO NOVO -->
+        <div class="linha">
+            <div class="input-group">
+                <label>CEP</label>
+                <input name="cep" value="{{ c['cep'] }}" onkeyup="mascaraCEP(this)" onblur="buscarCEP(this)">
+            </div>
+
+            <div class="input-group">
+                <label>Número</label>
+                <input name="numero" value="{{ c['numero'] }}">
+            </div>
+        </div>
+
+        <div class="linha">
+            <div class="input-group" style="width:100%;">
+                <label>Logradouro</label>
+                <input name="logradouro" value="{{ c['logradouro'] }}">
+            </div>
+        </div>
+
+        <div class="linha">
+            <div class="input-group">
+                <label>Bairro</label>
+                <input name="bairro" value="{{ c['bairro'] }}">
+            </div>
+
+            <div class="input-group">
+                <label>Cidade</label>
+                <input name="cidade" value="{{ c['cidade'] }}">
+            </div>
+
+            <div class="input-group">
+                <label>UF</label>
+                <input name="uf" value="{{ c['uf'] }}">
+            </div>
+        </div>
+
+        <div class="linha">
+            <div class="input-group">
+                <label>E-mail</label>
+                <input name="email" value="{{ c['email'] }}">
+            </div>
+        </div>
+
+        <button class="btn-acao btn-salvar">💾 Salvar</button>
+
+        <a href="/excluir_cliente/{{ id }}"
+        onclick="return confirm('Excluir cliente?')"
+        class="btn-acao btn-del">
+        🗑️
+        </a>
+
     </form>
-
-    <!-- EXCLUIR CLIENTE -->
-    <a href="/excluir_cliente/{{ id }}" 
-       onclick="return confirm('Excluir cliente?')"
-       style="color:red;">
-       🗑 Excluir
-    </a>
 
     <!-- VEÍCULOS -->
     <div class="veiculos">
-        <strong>🚗 Veículos:</strong>
+        <strong>🚗 Veículos</strong>
 
         {% if c["veiculos"] %}
             {% for v in c["veiculos"] %}
-                <div class="veiculo-item">
+                <div class="veiculo-box">
 
                     <form method="POST" action="/editar_veiculo/{{ v[0] }}">
-                        <input name="veiculo" value="{{ v[1] }}">
-                        <input name="placa" value="{{ v[2] }}">
 
-                        <button type="submit">💾 Salvar</button>
+                        <div class="linha">
+                            <div class="input-group">
+                                <label>Veículo</label>
+                                <input name="veiculo" value="{{ v[1] }}">
+                            </div>
+
+                            <div class="input-group">
+                                <label>Placa</label>
+                                <input name="placa" value="{{ v[2] }}">
+                            </div>
+                        </div>
+
+                        <button class="btn-acao btn-salvar">💾</button>
+
+                        <a href="/excluir_veiculo/{{ v[0] }}"
+                           onclick="return confirm('Excluir veículo?')"
+                           class="btn-acao btn-del">
+                           🗑️
+                        </a>
+
                     </form>
-
-                    <a href="/excluir_veiculo/{{ v[0] }}" 
-                       onclick="return confirm('Excluir veículo?')"
-                       style="color:red;">
-                       🗑 Excluir
-                    </a>
 
                 </div>
             {% endfor %}
@@ -159,7 +345,7 @@
             <div>-</div>
         {% endif %}
 
-        <button class="btn-add" data-id="{{ id }}" onclick="abrirVeiculo(this)">
+        <button class="btn-novo" data-id="{{ id }}" onclick="abrirVeiculo(this)">
             + Veículo
         </button>
     </div>
@@ -168,7 +354,7 @@
 {% endfor %}
 
 <!-- MODAL VEÍCULO -->
-<div id="modalVeiculo" style="display:none; background:#fff; padding:15px; position:fixed; bottom:0; left:0; right:0; border-radius:15px 15px 0 0;">
+<div id="modalVeiculo" style="display:none; background:#fff; color:black; padding:15px; position:fixed; bottom:0; left:0; right:0; border-radius:15px 15px 0 0;">
 
 <form method="POST" action="/add_veiculo">
 
@@ -199,6 +385,170 @@ function abrirVeiculo(btn){
 
 function fecharVeiculo(){
     document.getElementById("modalVeiculo").style.display = "none";
+}
+
+function mascaraTelefone(input){
+    let v = input.value.replace(/\D/g,'');
+
+    if(v.length <= 10){
+        v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
+        v = v.replace(/(\d{4})(\d)/,"$1-$2");
+    }else{
+        v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
+        v = v.replace(/(\d{5})(\d)/,"$1-$2");
+    }
+
+    input.value = v;
+}
+
+function mascaraDocumento(input){
+    let v = input.value.replace(/\D/g,'');
+
+    if(v.length <= 11){
+        // CPF
+        v = v.replace(/(\d{3})(\d)/,"$1.$2");
+        v = v.replace(/(\d{3})(\d)/,"$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+    }else{
+        // CNPJ
+        v = v.replace(/^(\d{2})(\d)/,"$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3");
+        v = v.replace(/\.(\d{3})(\d)/,".$1/$2");
+        v = v.replace(/(\d{4})(\d)/,"$1-$2");
+    }
+
+    input.value = v;
+}
+
+function mascaraCEP(input){
+    let v = input.value.replace(/\D/g,'');
+
+    v = v.replace(/(\d{5})(\d)/,"$1-$2");
+
+    input.value = v;
+}
+
+function buscarCEP(input){
+    let cep = input.value.replace(/\D/g,'');
+
+    if(cep.length !== 8) return;
+
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(res => res.json())
+    .then(dados => {
+
+        if(dados.erro) return;
+
+        // 🔥 pega o FORM correto
+        let form = input.closest("form");
+
+        if(!form) return;
+
+        let logradouro = form.querySelector('input[name="logradouro"]');
+        let bairro = form.querySelector('input[name="bairro"]');
+        let cidade = form.querySelector('input[name="cidade"]');
+        let uf = form.querySelector('input[name="uf"]');
+
+        if(logradouro) logradouro.value = dados.logradouro || '';
+        if(bairro) bairro.value = dados.bairro || '';
+        if(cidade) cidade.value = dados.localidade || '';
+        if(uf) uf.value = dados.uf || '';
+
+    })
+    .catch(() => {});
+}
+
+function validarCPF(cpf){
+    cpf = cpf.replace(/\D/g,'');
+
+    if(cpf.length !== 11) return false;
+
+    // bloqueia sequências tipo 11111111111
+    if(/^(\d)\1+$/.test(cpf)) return false;
+
+    let soma = 0;
+    let resto;
+
+    for(let i=0; i<9; i++)
+        soma += parseInt(cpf.charAt(i)) * (10 - i);
+
+    resto = (soma * 10) % 11;
+    if(resto === 10 || resto === 11) resto = 0;
+    if(resto !== parseInt(cpf.charAt(9))) return false;
+
+    soma = 0;
+
+    for(let i=0; i<10; i++)
+        soma += parseInt(cpf.charAt(i)) * (11 - i);
+
+    resto = (soma * 10) % 11;
+    if(resto === 10 || resto === 11) resto = 0;
+    if(resto !== parseInt(cpf.charAt(10))) return false;
+
+    return true;
+}
+
+function validarCNPJ(cnpj){
+    cnpj = cnpj.replace(/\D/g,'');
+
+    if(cnpj.length !== 14) return false;
+
+    if(/^(\d)\1+$/.test(cnpj)) return false;
+
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    let digitos = cnpj.substring(tamanho);
+
+    let soma = 0;
+    let pos = tamanho - 7;
+
+    for(let i = tamanho; i >= 1; i--){
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if(pos < 2) pos = 9;
+    }
+
+    let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if(resultado != digitos.charAt(0)) return false;
+
+    tamanho = tamanho + 1;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+
+    for(let i = tamanho; i >= 1; i--){
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if(pos < 2) pos = 9;
+    }
+
+    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+
+    return resultado == digitos.charAt(1);
+}
+
+function validarForm(form){
+
+    let doc = form.querySelector('input[name="documento"]');
+
+    if(doc && doc.value){
+
+        let valor = doc.value.replace(/\D/g,'');
+
+        if(valor.length <= 11){
+            if(!validarCPF(doc.value)){
+                alert("CPF inválido!");
+                doc.focus();
+                return false;
+            }
+        }else{
+            if(!validarCNPJ(doc.value)){
+                alert("CNPJ inválido!");
+                doc.focus();
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 </script>
 

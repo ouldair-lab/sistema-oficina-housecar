@@ -14,32 +14,38 @@
 <!-- HEADER PADRÃO -->
 {% include "_header.html" %}
 
-<form method="POST">
+<form method="POST" action="/orcamento">
 
-<input type="hidden" id="orcamento_id" value="{{ id }}">
+<input type="hidden" name="pecas_json" id="pecas_json">
+<input type="hidden" name="servicos_json" id="servicos_json">
+<input type="hidden" name="id" value="{{ id }}">
 
 <div class="secao">
     <h3>Cliente</h3>
 
     <div class="item-campo">
         <label>Nome:</label>
-        <input type="text" id="cliente" name="cliente">
+        <input type="text" id="cliente" name="cliente" 
+                value="{{ ordem[1] if ordem else ''}}">
         <div id="lista_clientes" class="sugestoes"></div>
     </div>
 
     <div class="item-campo">
         <label>Telefone:</label>
-        <input type="text" id="telefone" name="telefone">
+        <input type="text" id="telefone" name="telefone"
+                value="{{ ordem[2] if ordem else '' }}">
     </div>
 
     <div class="item-campo">
         <label>Veículo:</label>
-        <input type="text" id="veiculo" name="veiculo">
+        <input type="text" id="veiculo" name="veiculo"
+                value="{{ ordem[3] if ordem else '' }}">
     </div>
 
     <div class="item-campo">
         <label>Placa:</label>
-        <input type="text" id="placa" name="placa" required>
+        <input type="text" id="placa" name="placa"
+                value="{{ ordem[4] if ordem else '' }}">
     </div>
 </div>
 
@@ -48,12 +54,12 @@
 
     <div class="item-campo">
         <label>Problema:</label>
-        <textarea name="problema"></textarea>
+        <textarea name="problema">{{ ordem[5] if ordem else '' }}</textarea>
     </div>
 
     <div class="item-campo">
         <label>Solução:</label>
-        <textarea name="diagnostico"></textarea>
+        <textarea name="diagnostico">{{ ordem[6] if ordem else '' }}</textarea>
     </div>
 
     <div class="item-campo">
@@ -62,9 +68,11 @@
             <option value="">Selecione</option>
 
             {% for m in mecanicos %}
-                <option value="{{ m[1] }}">{{ m[1] }}</option>
+                <option value="{{ m[0] }}"
+                    {% if ordem and ordem[10] == m[0] %}selected{% endif %}>
+                    {{ m[0] }}
+                </option>
             {% endfor %}
-
         </select>
     </div>
     
@@ -72,122 +80,212 @@
 
 <h3>🔧 Peças</h3>
 
-<button type="button" class="btn-novo" onclick="addPeca()">+ Peça</button>
+<div id="tabela_pecas"></div>
 
-<div id="lista_pecas"></div>
+<div class="secao">
+    <input type="text" id="peca_nome" placeholder="Descrição">
+
+    <input type="number" id="peca_qtd" value="1">
+
+    <input type="number" id="peca_valor" step="0.01" placeholder="Valor">
+
+    <button type="button" onclick="adicionarPeca()" class="btn-principal">
+        + Adicionar Peça
+    </button>
+</div>
 
 <h3>🛠 Serviços</h3>
 
-<button type="button" class="btn-novo" onclick="addServico()">+ Serviço</button>
+<div id="tabela_servicos"></div>
 
-<div id="lista_servicos"></div>
+<div class="secao">
+    <input type="text" id="servico_nome" placeholder="Descrição">
+
+    <input type="number" id="servico_qtd" value="1">
+
+    <input type="number" id="servico_valor" step="0.01" placeholder="Valor">
+
+    <label style="display:block; margin-top:5px;">
+        <input type="checkbox" id="servico_comissao">
+        Comissão
+    </label>
+
+    <button type="button" onclick="adicionarServico()" class="btn-principal">
+        + Adicionar Serviço
+    </button>
+</div>
 
 <h3>TOTAL: R$ <span id="total_geral">0.00</span></h3>
 
 <div class="botoes">
-    <button class="btn">💾 Salvar Orçamento</button>
+    <button type="submit" class="btn">
+        💾 Salvar Orçamento
+    </button>
     <button type="button" class="btn-zap" onclick="enviarWhatsApp()">📲 Enviar WhatsApp</button>
 </div>
 
 </form>
 
 <script>
-let indexServico = 0;
+let pecas = [];
+function adicionarPeca(){
+    let nome = document.getElementById("peca_nome").value;
+    let qtd = parseFloat(document.getElementById("peca_qtd").value || 1);
+    let valor = parseFloat(document.getElementById("peca_valor").value || 0);
 
-function addPeca(){
-    let div = document.createElement("div");
-    div.classList.add("linha-item");
+    if(!nome){
+        alert("Digite a peça");
+        return;
+    }
 
-    div.innerHTML = `
-        <div class="campo-full">
-            <label>Descrição</label>
-            <input name="peca_nome">
-        </div>
+    pecas.push({nome, qtd, valor});
 
-        <div class="linha-valores">
+    document.getElementById("peca_nome").value = "";
+    document.getElementById("peca_qtd").value = 1;
+    document.getElementById("peca_valor").value = "";
 
-            <div class="item-campo">
-                <label>Qtde</label>
-                <input type="number" name="peca_qtd" value="1" oninput="calcularLinha(this)">
-            </div>
-
-            <div class="item-campo">
-                <label>Valor Unit.</label>
-                <input type="number" step="0.01" name="peca_valor" oninput="calcularLinha(this)">
-            </div>
-
-            <div class="item-campo">
-                <label>Total</label>
-                <input type="text" readonly>
-            </div>
-
-            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">
-            🗑 Excluir
-            </button>
-
-        </div>
-    `;
-
-    document.getElementById("lista_pecas").appendChild(div);
+    renderPecas();
 }
 
-function addServico(){
-    let i = indexServico++;
-
-    let div = document.createElement("div");
-    div.classList.add("linha-item");
-
-    div.innerHTML = `
-        <div class="campo-full">
-            <label>Descrição</label>
-            <input name="servico_nome_${i}">
-        </div>
-
-        <div class="linha-valores">
-
-            <div class="item-campo">
-                <label>Qtde</label>
-                <input type="number" name="servico_qtd_${i}" value="1" oninput="calcularLinha(this)">
-            </div>
-
-            <div class="item-campo">
-                <label>Valor Unit.</label>
-                <input type="number" step="0.01" name="servico_valor_${i}" oninput="calcularLinha(this)">
-            </div>
-
-            <div class="item-campo">
-                <label>Total</label>
-                <input type="text" readonly>
-            </div>
-
-            <div class="item-campo">
-                <label>Comissão</label>
-                <input type="checkbox" name="servico_comissao_${i}">
-            </div>
-
-            <button type="button" class="btn-remove" onclick="this.closest('.linha-item').remove()">
-            🗑 Excluir
-            </button>
-
-        </div>
-    `;
-
-    document.getElementById("lista_servicos").appendChild(div);
+function removerPeca(index){
+    pecas.splice(index, 1);
+    renderPecas();
 }
 
-function calcularLinha(el){
-    let linha = el.closest('.linha-item');
+function editarPeca(index){
+    let p = pecas[index];
 
-    let qtd = linha.querySelector('input[name*="qtd"]');
-    let valor = linha.querySelector('input[name*="valor"]');
-    let total = linha.querySelector('input[readonly]');
+    document.getElementById("peca_nome").value = p.nome;
+    document.getElementById("peca_qtd").value = p.qtd;
+    document.getElementById("peca_valor").value = p.valor;
 
-    let q = parseFloat(qtd.value || 0);
-    let v = parseFloat(valor.value || 0);
+    pecas.splice(index, 1);
 
-    let resultado = q * v;
+    renderPecas();
+}
 
-    total.value = resultado.toFixed(2);
+function renderPecas(){
+    let html = `
+        <table class="tabela-pecas">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Qtd</th>
+                    <th>Valor</th>
+                    <th>Total</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    pecas.forEach((p, i) => {
+        let total = p.qtd * p.valor;
+
+        html += `
+            <tr>
+                <td>${p.nome}</td>
+                <td>${p.qtd}</td>
+                <td>R$ ${p.valor.toFixed(2)}</td>
+                <td>R$ ${total.toFixed(2)}</td>
+                <td>
+                <div style="display:flex; justify-content:center; gap:6px;">
+                    <button type="button" class="btn-acao" onclick="editarPeca(${i})">✏️</button>
+                    <button type="button" class="btn-remove" onclick="removerPeca(${i})">🗑️</button>
+                </div>
+            </td>
+            </tr>
+        `;
+    });
+
+    html += "</tbody></table>";
+
+    document.getElementById("tabela_pecas").innerHTML = html;
+    document.getElementById("pecas_json").value = JSON.stringify(pecas);
+
+    calcularTotalGeral();
+}
+
+let servicos = [];
+function adicionarServico(){
+    let nome = document.getElementById("servico_nome").value;
+    let qtd = parseFloat(document.getElementById("servico_qtd").value || 1);
+    let valor = parseFloat(document.getElementById("servico_valor").value || 0);
+    let comissao = document.getElementById("servico_comissao").checked;
+
+    if(!nome){
+        alert("Digite o serviço");
+        return;
+    }
+
+    servicos.push({nome, qtd, valor, comissao});
+
+    document.getElementById("servico_nome").value = "";
+    document.getElementById("servico_qtd").value = 1;
+    document.getElementById("servico_valor").value = "";
+    document.getElementById("servico_comissao").checked = false;
+
+    renderServicos();
+}
+
+function removerServico(index){
+    servicos.splice(index, 1);
+    renderServicos();
+}
+
+function editarServico(index){
+    let s = servicos[index];
+
+    document.getElementById("servico_nome").value = s.nome;
+    document.getElementById("servico_qtd").value = s.qtd;
+    document.getElementById("servico_valor").value = s.valor;
+    document.getElementById("servico_comissao").checked = s.comissao;
+
+    servicos.splice(index, 1);
+
+    renderServicos();
+}
+
+function renderServicos(){
+    let html = `
+        <table class="tabela-pecas">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Qtd</th>
+                    <th>Valor</th>
+                    <th>Total</th>
+                    <th>Comissão</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    servicos.forEach((s, i) => {
+        let total = s.qtd * s.valor;
+
+        html += `
+            <tr>
+                <td>${s.nome}</td>
+                <td>${s.qtd}</td>
+                <td>R$ ${s.valor.toFixed(2)}</td>
+                <td>R$ ${total.toFixed(2)}</td>
+                <td>${s.comissao ? "✔" : "-"}</td>
+                <td>
+                    <div style="display:flex; justify-content:center; gap:6px;">
+                        <button type="button" class="btn-acao" onclick="editarServico(${i})">✏️</button>
+                        <button type="button" class="btn-remove" onclick="removerServico(${i})">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += "</tbody></table>";
+
+    document.getElementById("tabela_servicos").innerHTML = html;
+    document.getElementById("servicos_json").value = JSON.stringify(servicos);
 
     calcularTotalGeral();
 }
@@ -195,11 +293,51 @@ function calcularLinha(el){
 function calcularTotalGeral(){
     let total = 0;
 
-    document.querySelectorAll('.linha-item input[readonly]').forEach(el => {
-        total += parseFloat(el.value || 0);
-    });
+    // 🧩 PEÇAS
+    if (typeof pecas !== "undefined") {
+        pecas.forEach(p => {
+            total += p.qtd * p.valor;
+        });
+    }    
+    // SERVIÇOS
+    if (typeof servicos !== "undefined") {
+        servicos.forEach(s => {
+            total += s.qtd * s.valor;
+        });
+    }
 
     document.getElementById("total_geral").innerText = total.toFixed(2);
+}
+
+window.onload = function(){
+
+    let dadosPecas = JSON.parse('{{ pecas | tojson | safe }}');
+    pecas = [];
+
+    dadosPecas.forEach(p => {
+        pecas.push({
+            nome: p[0],
+            valor: parseFloat(p[1]),
+            qtd: parseFloat(p[2])
+        });
+    });
+
+    renderPecas();
+
+    let dadosServicos = JSON.parse('{{ servicos | tojson | safe }}');
+    servicos = [];
+
+    dadosServicos.forEach(s => {
+        servicos.push({
+            nome: s[0],
+            valor: parseFloat(s[1]),
+            qtd: parseFloat(s[2]),
+            comissao: s[3]
+        });
+    });
+
+    renderServicos();
+
 }
 </script>
 

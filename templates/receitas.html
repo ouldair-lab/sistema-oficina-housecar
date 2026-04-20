@@ -3,38 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Receitas</title>
 
 <link rel="stylesheet" href="/static/style.css">
 
 <style>
-.lista-receitas {
-    margin-top: 15px;
-}
-
-.card-receita {
-    background: #1e3a8a;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-}
-
-.card-receita div {
-    margin-bottom: 5px;
-}
-
-.linha-topo {
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-}
-
-.valor {
-    font-weight: bold;
-    font-size: 16px;
-}
-
 .topo-padrao {
     display: flex;
     justify-content: space-between;
@@ -44,18 +17,54 @@
 
 .btn-add {
     background: #06d6a0;
-    border: none;
     padding: 10px 14px;
     border-radius: 8px;
     font-weight: bold;
-    cursor: pointer;
+    border: none;
 }
 
-.btn-add:hover {
-    background: #05b386;
+.tabela-container {
+    overflow-x: auto;
 }
 
-/* MODAL */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #1e3a8a;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+.btn-acao {
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-edit {
+    background: #2563eb;
+}
+
+.btn-del {
+    background: #dc2626;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -63,85 +72,79 @@
     left: 0;
     right: 0;
     background: white;
+    color: black;
     padding: 15px;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
+    border-radius: 15px 15px 0 0;
 }
 </style>
-
 </head>
 
 <body>
 
-<!-- HEADER PADRÃO -->
 {% include "_header.html" %}
 
-<!-- TOTAL -->
-<div class="total-receitas">
-    💰 Total: R$ {{ "%.2f"|format(total) }}
-</div>
-
-<div class="resumo-formas">
-    <div>📲 PIX: R$ {{ "%.2f"|format(total_pix) }}</div>
-    <div>💵 Dinheiro: R$ {{ "%.2f"|format(total_dinheiro) }}</div>
-    <div>💳 Débito: R$ {{ "%.2f"|format(total_debito) }}</div>
-    <div>💳 Crédito: R$ {{ "%.2f"|format(total_credito) }}</div>
-</div>
-
-<!-- TOPO PADRÃO -->
+<!-- RESUMO -->
 <div class="topo-padrao">
-    <h3>Lista de Receitas</h3>
+    <h3>💰 Receitas</h3>
     <button class="btn-add" onclick="abrirModal()">+ Receita</button>
 </div>
 
-<!-- LISTA -->
-<div class="lista-receitas">
+<div>
+    <strong>Total Recebido: R$ {{ "%.2f"|format(total) }}</strong><br>
+    📲 PIX: R$ {{ "%.2f"|format(total_pix) }} |
+    💵 Dinheiro: R$ {{ "%.2f"|format(total_dinheiro) }} |
+    💳 Débito: R$ {{ "%.2f"|format(total_debito) }} |
+    💳 Crédito: R$ {{ "%.2f"|format(total_credito) }}
+</div>
+
+<!-- TABELA -->
+<div class="tabela-container">
+<table>
+<tr>
+    <th>Descrição</th>
+    <th>Valor</th>
+    <th>Forma</th>
+    <th>Status</th>
+    <th>Data</th>
+    <th>Ações</th>
+</tr>
 
 {% for r in receitas %}
-<div class="card-receita">
+<tr>
+    <td>{{ r[3] }}</td>
+    <td>R$ {{ "%.2f"|format(r[5]) }}</td>
+    <td>{{ r[6] }}</td>
+    <td>{{ r[7] }}</td>
 
-    <div class="linha-topo">
-        <strong>{{ r[3] }}</strong>
-        <span class="valor">R$ {{ "%.2f"|format(r[5]) }}</span>
-    </div>
+    <td>
+        {% if r[8] %}
+            {{ formatar_data(r[8]) }}
+        {% endif %}
+    </td>
 
-    <div><b>Forma:</b> {{ r[6] }}</div>
-    <div><b>Status:</b> {{ r[7] }}</div>
-    <div style="font-size:12px;">{{ r[8] }}</div>
+    <td>
+        <button class="btn-acao btn-edit"
+            data-id="{{ r[0] }}"
+            data-valor="{{ r[5] }}"
+            data-forma="{{ r[6] }}"
+            data-status="{{ r[7] }}"
+            onclick="abrirEdit(this)">
+            ✏️
+        </button>
 
-    <button 
-    type="button"
-    data-id="{{ r[0] }}"
-    data-valor="{{ r[5] }}"
-    data-forma="{{ r[6] }}"
-    data-status="{{ r[7] }}"
-    onclick="abrirEdicao(this)">
-    ✏️ Editar
-    </button>
-
-    <a 
-    href="/excluir_receita/{{ r[0] }}" 
-    onclick="return confirmarExclusao()" 
-    style="
-    display:block;
-    background:#dc2626;
-    color:white;
-    text-align:center;
-    padding:8px;
-    border-radius:6px;
-    margin-top:5px;
-    text-decoration:none;">
-    🗑️ Excluir
-    </a>
-
-</div>
+        <a href="/excluir_receita/{{ r[0] }}"
+           class="btn-acao btn-del"
+           onclick="return confirm('Excluir esta receita?')">
+           🗑️
+        </a>
+    </td>
+</tr>
 {% endfor %}
-
+</table>
 </div>
 
-<!-- MODAL NOVA RECEITA -->
+<!-- MODAL NOVA -->
 <div class="modal" id="modal">
-
 <form method="POST">
 
     <h3>Nova Receita</h3>
@@ -165,15 +168,13 @@
     <button type="button" onclick="fecharModal()">Cancelar</button>
 
 </form>
-
 </div>
 
 <!-- MODAL EDIT -->
 <div class="modal" id="modalEdit">
-
 <form method="POST" id="formEdit">
 
-    <h3>Editar Receita</h3>
+    <h3 id="tituloModal">Editar Receita</h3>
 
     <input type="hidden" name="id" id="edit_id">
 
@@ -195,35 +196,61 @@
     <button type="button" onclick="fecharEdit()">Cancelar</button>
 
 </form>
+</div>
+
+<div style="margin-top:20px; text-align:center;">
+
+    {% if total_paginas > 1 %}
+
+        {% if pagina > 1 %}
+            <a href="?pagina={{ pagina - 1 }}"
+               style="margin:3px; padding:6px 10px; background:#1e3a8a; color:white; border-radius:5px; text-decoration:none;">
+                ⬅ Anterior
+            </a>
+        {% endif %}
+
+        {% for p in range(1, total_paginas + 1) %}
+            <a href="?pagina={{ p }}"
+               style="margin:3px; padding:6px 10px; 
+               background: {% if p == pagina %}#22c55e{% else %}#1e3a8a{% endif %};
+               color:white; border-radius:5px; text-decoration:none;">
+                {{ p }}
+            </a>
+        {% endfor %}
+
+        {% if pagina < total_paginas %}
+            <a href="?pagina={{ pagina + 1 }}"
+               style="margin:3px; padding:6px 10px; background:#1e3a8a; color:white; border-radius:5px; text-decoration:none;">
+                Próxima ➡
+            </a>
+        {% endif %}
+
+    {% endif %}
 
 </div>
 
 <script>
-function abrirModal() {
-    document.getElementById("modal").style.display = "block";
+function abrirModal(){
+    document.getElementById("modal").style.display="block";
 }
 
-function fecharModal() {
-    document.getElementById("modal").style.display = "none";
+function fecharModal(){
+    document.getElementById("modal").style.display="none";
 }
 
-function abrirEdicao(botao) {
-    document.getElementById("modalEdit").style.display = "block";
+function abrirEdit(btn){
+    document.getElementById("modalEdit").style.display="block";
 
-    document.getElementById("edit_id").value = botao.dataset.id;
-    document.getElementById("edit_valor").value = botao.dataset.valor;
-    document.getElementById("edit_forma").value = botao.dataset.forma;
-    document.getElementById("edit_status").value = botao.dataset.status;
+    document.getElementById("edit_id").value = btn.dataset.id;
+    document.getElementById("edit_valor").value = btn.dataset.valor;
+    document.getElementById("edit_forma").value = btn.dataset.forma;
+    document.getElementById("edit_status").value = btn.dataset.status;
 
-    document.getElementById("formEdit").action = "/editar_receita/" + botao.dataset.id;
+    document.getElementById("formEdit").action = "/editar_receita/" + btn.dataset.id;
 }
 
-function fecharEdit() {
-    document.getElementById("modalEdit").style.display = "none";
-}
-
-function confirmarExclusao() {
-    return confirm("Tem certeza que deseja excluir esta receita?");
+function fecharEdit(){
+    document.getElementById("modalEdit").style.display="none";
 }
 </script>
 

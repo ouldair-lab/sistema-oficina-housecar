@@ -11,3 +11,182 @@
     </div>
 
 </div>
+
+<script>
+
+// ==============================
+// 🔥 FUNÇÕES BASE
+// ==============================
+
+// CPF
+function validarCPF(cpf){
+    cpf = cpf.replace(/\D/g,'');
+
+    if(cpf.length !== 11) return false;
+    if(/^(\d)\1+$/.test(cpf)) return false;
+
+    let soma = 0;
+    for(let i=0;i<9;i++) soma += cpf[i] * (10-i);
+
+    let resto = (soma*10)%11;
+    if(resto===10) resto=0;
+    if(resto!=cpf[9]) return false;
+
+    soma = 0;
+    for(let i=0;i<10;i++) soma += cpf[i] * (11-i);
+
+    resto = (soma*10)%11;
+    if(resto===10) resto=0;
+
+    return resto==cpf[10];
+}
+
+// CNPJ
+function validarCNPJ(cnpj){
+    cnpj = cnpj.replace(/\D/g,'');
+
+    if(cnpj.length !== 14) return false;
+    if(/^(\d)\1+$/.test(cnpj)) return false;
+
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0, tamanho);
+    let digitos = cnpj.substring(tamanho);
+
+    let soma = 0;
+    let pos = tamanho - 7;
+
+    for(let i=tamanho;i>=1;i--){
+        soma += numeros[tamanho-i] * pos--;
+        if(pos<2) pos=9;
+    }
+
+    let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if(resultado != digitos[0]) return false;
+
+    tamanho++;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+
+    for(let i=tamanho;i>=1;i--){
+        soma += numeros[tamanho-i] * pos--;
+        if(pos<2) pos=9;
+    }
+
+    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+
+    return resultado == digitos[1];
+}
+
+// ==============================
+// 🔥 INPUTS GLOBAIS
+// ==============================
+
+document.addEventListener("input", function(e){
+
+    let el = e.target;
+
+    if(el.name === "telefone"){
+        let v = el.value.replace(/\D/g,'').slice(0,11);
+
+        if(v.length > 10){
+            v = v.replace(/^(\d{2})(\d)/,"($1) $2");
+            v = v.replace(/(\d{5})(\d)/,"$1-$2");
+        }else if(v.length > 6){
+            v = v.replace(/^(\d{2})(\d)/,"($1) $2");
+            v = v.replace(/(\d{4})(\d)/,"$1-$2");
+        }else if(v.length > 2){
+            v = v.replace(/^(\d{2})(\d)/,"($1) $2");
+        }
+
+        el.value = v;
+    }
+
+    if(el.name === "documento"){
+        let v = el.value.replace(/\D/g,'');
+
+        if(v.length <= 11){
+            v = v.replace(/(\d{3})(\d)/,"$1.$2");
+            v = v.replace(/(\d{3})(\d)/,"$1.$2");
+            v = v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+        }else{
+            v = v.replace(/^(\d{2})(\d)/,"$1.$2");
+            v = v.replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3");
+            v = v.replace(/\.(\d{3})(\d)/,".$1/$2");
+            v = v.replace(/(\d{4})(\d)/,"$1-$2");
+        }
+
+        el.value = v;
+    }
+
+    if(el.name === "cep"){
+        let v = el.value.replace(/\D/g,'');
+        v = v.replace(/(\d{5})(\d)/,"$1-$2");
+        el.value = v;
+    }
+
+    if(el.name === "placa"){
+        let v = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        el.value = v;
+    }
+
+});
+
+// ==============================
+// 🔥 VALIDAÇÃO GLOBAL (CORRIGIDA)
+// ==============================
+
+document.addEventListener("submit", function(e){
+
+    let form = e.target;
+    let doc = form.querySelector('input[name="documento"]');
+
+    // 🔥 SÓ VALIDA SE TIVER VALOR REAL
+    if(doc && doc.value && doc.value.replace(/\D/g,'').length > 0){
+
+        let valor = doc.value.replace(/\D/g,'');
+
+        if(valor.length <= 11){
+            if(!validarCPF(doc.value)){
+                alert("CPF inválido!");
+                doc.focus();
+                e.preventDefault();
+            }
+        }else{
+            if(!validarCNPJ(doc.value)){
+                alert("CNPJ inválido!");
+                doc.focus();
+                e.preventDefault();
+            }
+        }
+    }
+
+});
+
+// ==============================
+// 🔥 ESC
+// ==============================
+
+document.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){
+
+        document.querySelectorAll(".modal").forEach(m => {
+            m.style.display = "none";
+        });
+
+        document.querySelectorAll("[id^='form'], [id^='modal']").forEach(el => {
+            if(el.style.display === "block"){
+                el.style.display = "none";
+            }
+        });
+
+        document.querySelectorAll("input").forEach(i => {
+            if(i.type !== "hidden"){
+                i.value = "";
+            }
+        });
+
+    }
+});
+
+</script>

@@ -56,6 +56,7 @@ def criar_tabelas():
     CREATE TABLE IF NOT EXISTS ordens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         cliente TEXT,
+        telefone TEXT,
         veiculo TEXT,
         placa TEXT,
         problema TEXT,
@@ -69,6 +70,11 @@ def criar_tabelas():
     )
     """)
 
+    try:
+        cursor.execute("ALTER TABLE ordens ADD COLUMN telefone TEXT")
+    except:
+        pass
+
     # 🔷 ITENS (PEÇAS E SERVIÇOS)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS itens (
@@ -78,7 +84,8 @@ def criar_tabelas():
         nome TEXT,
         valor REAL,
         quantidade INTEGER,
-        comissao INTEGER DEFAULT 0
+        comissao INTEGER DEFAULT 0,
+        estoque INTEGER DEFAULT 0
     )
     """)
 
@@ -371,15 +378,16 @@ def criar_tabela_clientes():
         nome TEXT,
         telefone TEXT NOT NULL,
         documento TEXT,
-        data_nascimento TEXT
+        data_nascimento TEXT,
+        cep TEXT,
+        logradouro TEXT,
+        numero TEXT,
+        bairro TEXT,
+        cidade TEXT,
+        uf TEXT,
+        email TEXT
     )
     """)
-
-    # 🔥 garante coluna em banco antigo
-    try:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN data_nascimento TEXT")
-    except:
-        pass
 
     conn.commit()
     conn.close()
@@ -446,6 +454,13 @@ def listar_clientes():
         c.telefone,
         c.documento,
         c.data_nascimento,
+        c.cep,
+        c.logradouro,
+        c.numero,
+        c.bairro,
+        c.cidade,
+        c.uf,
+        c.email,
         v.id,
         v.veiculo,
         v.placa
