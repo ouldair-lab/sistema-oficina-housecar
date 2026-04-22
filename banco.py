@@ -66,12 +66,19 @@ def criar_tabelas():
         status TEXT DEFAULT 'EM ANDAMENTO',
         mecanico TEXT,
         data_entrada TEXT,
-        data_saida TEXT
+        data_saida TEXT,
+        quilometragem INTEGER
     )
     """)
 
+    # 🔧 GARANTIR COLUNAS (produção segura)
     try:
         cursor.execute("ALTER TABLE ordens ADD COLUMN telefone TEXT")
+    except:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE ordens ADD COLUMN quilometragem INTEGER")
     except:
         pass
 
@@ -89,22 +96,17 @@ def criar_tabelas():
     )
     """)
 
-    # 🔷 NOVA TABELA: RECEITAS 💰
+    # 🔷 RECEITAS 💰
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS receitas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        origem TEXT, -- OS ou VENDA
-        ordem_id INTEGER, -- ligação com OS (se houver)
-
+        origem TEXT,
+        ordem_id INTEGER,
         descricao TEXT,
-
         valor_original REAL,
         valor_final REAL,
-
         forma_pagamento TEXT,
         status TEXT,
-
         data TEXT
     )
     """)

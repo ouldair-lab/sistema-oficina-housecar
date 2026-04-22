@@ -95,6 +95,15 @@
     <button class="btn-novo" onclick="toggleForm()">+ Cliente</button>
 </div>
 
+<form method="GET" action="/clientes" style="margin-bottom:10px;">
+    <input 
+        type="text" 
+        name="busca" 
+        placeholder="Buscar por nome ou placa"
+        value="{{ busca or '' }}"
+        style="width:100%; padding:8px; border-radius:8px; border:none;">
+</form>
+
 <!-- FORM NOVO -->
 <div id="formCliente" style="display:none;">
 <form method="POST" onsubmit="return validarForm(this)">
@@ -213,144 +222,161 @@
 {% for id, c in clientes_agrupados.items() %}
 <div class="card">
 
-    <!-- DADOS -->
-    <div><strong>👤 {{ c["nome"] }}</strong></div>
-    <div>📞 {{ c["telefone"] }}</div>
-    <div>🆔 {{ c["documento"] or '-' }}</div>
+    <!-- CABEÇALHO -->
+    <div class="linha" style="justify-content: space-between; align-items: center; cursor:pointer;" onclick="toggleCliente(this)">
+        <div>
+            <strong>👤 {{ c["nome"] }}</strong><br>
+            📞 {{ c["telefone"] }}<br>
 
-    <div style="margin-top:5px;">
-        📍 {{ c["logradouro"] or "" }}, {{ c["numero"] or "s/n" }}<br>
-        {{ c["bairro"] or "" }} - {{ c["cidade"] or "" }}/{{ c["uf"] or "" }}<br>
-        CEP: {{ c["cep"] or "-" }}
+            {% if c["veiculos"] and c["veiculos"][0][2] %}
+                🚗 {{ c["veiculos"][0][2] }}
+            {% endif %}
+        </div>
+
+        <div style="font-size:20px;">➕</div>
     </div>
 
-    <div>✉️ {{ c["email"] or '-' }}</div>
-    <div>🎂 {{ formatar_data(c["data"]) or '-' }}</div>
+    <!-- CONTEÚDO -->
+    <div class="conteudo-cliente" style="display:none;">
 
-    <!-- EDITAR CLIENTE -->
-    <form method="POST" action="/editar_cliente/{{ id }}" onsubmit="return validarForm(this)">
+        <!-- DADOS -->
+        <div><strong>👤 {{ c["nome"] }}</strong></div>
+        <div>📞 {{ c["telefone"] }}</div>
+        <div>🆔 {{ c["documento"] or '-' }}</div>
 
-        <div class="linha">
-            <div class="input-group">
-                <label>Nome</label>
-                <input name="nome" value="{{ c['nome'] }}">
-            </div>
-
-            <div class="input-group">
-                <label>Telefone</label>
-                <input name="telefone" value="{{ c['telefone'] }}" onkeyup="mascaraTelefone(this)">
-            </div>
+        <div style="margin-top:5px;">
+            📍 {{ c["logradouro"] or "" }}, {{ c["numero"] or "s/n" }}<br>
+            {{ c["bairro"] or "" }} - {{ c["cidade"] or "" }}/{{ c["uf"] or "" }}<br>
+            CEP: {{ c["cep"] or "-" }}
         </div>
 
-        <div class="linha">
-            <div class="input-group">
-                <label>CPF/CNPJ</label>
-                <input name="documento" value="{{ c['documento'] }}" onkeyup="mascaraDocumento(this)">
-            </div>
+        <div>✉️ {{ c["email"] or '-' }}</div>
+        <div>🎂 {{ formatar_data(c["data"]) or '-' }}</div>
 
-            <div class="input-group">
-                <label>Data de Nascimento</label>
-                <input name="data_nascimento" type="date" value="{{ c['data'] }}">
-            </div>
-        </div>
+        <!-- EDITAR CLIENTE -->
+        <form method="POST" action="/editar_cliente/{{ id }}" onsubmit="return validarForm(this)">
 
-        <!-- ENDEREÇO NOVO -->
-        <div class="linha">
-            <div class="input-group">
-                <label>CEP</label>
-                <input name="cep" value="{{ c['cep'] }}" onkeyup="mascaraCEP(this)" onblur="buscarCEP(this)">
-            </div>
-
-            <div class="input-group">
-                <label>Número</label>
-                <input name="numero" value="{{ c['numero'] }}">
-            </div>
-        </div>
-
-        <div class="linha">
-            <div class="input-group" style="width:100%;">
-                <label>Logradouro</label>
-                <input name="logradouro" value="{{ c['logradouro'] }}">
-            </div>
-        </div>
-
-        <div class="linha">
-            <div class="input-group">
-                <label>Bairro</label>
-                <input name="bairro" value="{{ c['bairro'] }}">
-            </div>
-
-            <div class="input-group">
-                <label>Cidade</label>
-                <input name="cidade" value="{{ c['cidade'] }}">
-            </div>
-
-            <div class="input-group">
-                <label>UF</label>
-                <input name="uf" value="{{ c['uf'] }}">
-            </div>
-        </div>
-
-        <div class="linha">
-            <div class="input-group">
-                <label>E-mail</label>
-                <input name="email" value="{{ c['email'] }}">
-            </div>
-        </div>
-
-        <button class="btn-acao btn-salvar">💾 Salvar</button>
-
-        <a href="/excluir_cliente/{{ id }}"
-        onclick="return confirm('Excluir cliente?')"
-        class="btn-acao btn-del">
-        🗑️
-        </a>
-
-    </form>
-
-    <!-- VEÍCULOS -->
-    <div class="veiculos">
-        <strong>🚗 Veículos</strong>
-
-        {% if c["veiculos"] %}
-            {% for v in c["veiculos"] %}
-                <div class="veiculo-box">
-
-                    <form method="POST" action="/editar_veiculo/{{ v[0] }}">
-
-                        <div class="linha">
-                            <div class="input-group">
-                                <label>Veículo</label>
-                                <input name="veiculo" value="{{ v[1] }}">
-                            </div>
-
-                            <div class="input-group">
-                                <label>Placa</label>
-                                <input name="placa" value="{{ v[2] }}">
-                            </div>
-                        </div>
-
-                        <button class="btn-acao btn-salvar">💾</button>
-
-                        <a href="/excluir_veiculo/{{ v[0] }}"
-                           onclick="return confirm('Excluir veículo?')"
-                           class="btn-acao btn-del">
-                           🗑️
-                        </a>
-
-                    </form>
-
+            <div class="linha">
+                <div class="input-group">
+                    <label>Nome</label>
+                    <input name="nome" value="{{ c['nome'] }}">
                 </div>
-            {% endfor %}
-        {% else %}
-            <div>-</div>
-        {% endif %}
 
-        <button class="btn-novo" data-id="{{ id }}" onclick="abrirVeiculo(this)">
-            + Veículo
-        </button>
-    </div>
+                <div class="input-group">
+                    <label>Telefone</label>
+                    <input name="telefone" value="{{ c['telefone'] }}" onkeyup="mascaraTelefone(this)">
+                </div>
+            </div>
 
+            <div class="linha">
+                <div class="input-group">
+                    <label>CPF/CNPJ</label>
+                    <input name="documento" value="{{ c['documento'] }}" onkeyup="mascaraDocumento(this)">
+                </div>
+
+                <div class="input-group">
+                    <label>Data de Nascimento</label>
+                    <input name="data_nascimento" type="date" value="{{ c['data'] }}">
+                </div>
+            </div>
+
+            <!-- ENDEREÇO NOVO -->
+            <div class="linha">
+                <div class="input-group">
+                    <label>CEP</label>
+                    <input name="cep" value="{{ c['cep'] }}" onkeyup="mascaraCEP(this)" onblur="buscarCEP(this)">
+                </div>
+
+                <div class="input-group">
+                    <label>Número</label>
+                    <input name="numero" value="{{ c['numero'] }}">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="input-group" style="width:100%;">
+                    <label>Logradouro</label>
+                    <input name="logradouro" value="{{ c['logradouro'] }}">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="input-group">
+                    <label>Bairro</label>
+                    <input name="bairro" value="{{ c['bairro'] }}">
+                </div>
+
+                <div class="input-group">
+                    <label>Cidade</label>
+                    <input name="cidade" value="{{ c['cidade'] }}">
+                </div>
+
+                <div class="input-group">
+                    <label>UF</label>
+                    <input name="uf" value="{{ c['uf'] }}">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="input-group">
+                    <label>E-mail</label>
+                    <input name="email" value="{{ c['email'] }}">
+                </div>
+            </div>
+
+            <button class="btn-acao btn-salvar">💾 Salvar</button>
+
+            <a href="/excluir_cliente/{{ id }}"
+            onclick="return confirm('Excluir cliente?')"
+            class="btn-acao btn-del">
+            🗑️
+            </a>
+
+        </form>
+
+        <!-- VEÍCULOS -->
+        <div class="veiculos">
+            <strong>🚗 Veículos</strong>
+
+            {% if c["veiculos"] %}
+                {% for v in c["veiculos"] %}
+                    <div class="veiculo-box">
+
+                        <form method="POST" action="/editar_veiculo/{{ v[0] }}">
+
+                            <div class="linha">
+                                <div class="input-group">
+                                    <label>Veículo</label>
+                                    <input name="veiculo" value="{{ v[1] }}">
+                                </div>
+
+                                <div class="input-group">
+                                    <label>Placa</label>
+                                    <input name="placa" value="{{ v[2] }}">
+                                </div>
+                            </div>
+
+                            <button class="btn-acao btn-salvar">💾</button>
+
+                            <a href="/excluir_veiculo/{{ v[0] }}"
+                            onclick="return confirm('Excluir veículo?')"
+                            class="btn-acao btn-del">
+                            🗑️
+                            </a>
+
+                        </form>
+
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div>-</div>
+            {% endif %}
+
+            <button class="btn-novo" data-id="{{ id }}" onclick="abrirVeiculo(this)">
+                + Veículo
+            </button>
+        </div>
+    </div> <!-- conteudo-cliente -->
 </div>
 {% endfor %}
 
@@ -550,6 +576,20 @@ function validarForm(form){
     }
 
     return true;
+}
+
+function toggleCliente(el){
+    let card = el.closest(".card");
+    let conteudo = card.querySelector(".conteudo-cliente");
+    let icone = el.querySelector("div:last-child");
+
+    if(conteudo.style.display === "none"){
+        conteudo.style.display = "block";
+        icone.innerHTML = "➖";
+    }else{
+        conteudo.style.display = "none";
+        icone.innerHTML = "➕";
+    }
 }
 </script>
 

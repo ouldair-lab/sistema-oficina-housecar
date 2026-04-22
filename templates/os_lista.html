@@ -122,6 +122,7 @@ tr:nth-child(even) {
         <th>Veículo</th>
         <th>Placa</th>
         <th>Total</th>
+        <th>KM</th>
         <th>Tipo</th>
         <th>Status</th>
         <th>Mecânico</th>
@@ -134,24 +135,25 @@ tr:nth-child(even) {
     <td>{{ o[0] }}</td>
     <td>{{ o[1] }}</td>
     <td>{{ o[2] }}</td>
-    <td>{{ o[3] }}</td>
+    <td>{{ o[3] }}</td>    
     <td>R$ {{ "%.2f"|format(o[4]) }}</td>
-    <td>{{ o[5] }}</td>
+    <td>{{ o[5] or '' }}</td>
+    <td>{{ o[6] }}</td>
 
     <td>
         <span class="status 
-        {% if o[6] == 'FINALIZADA' %}finalizada
-        {% elif o[6] == 'EM ANDAMENTO' %}andamento
-        {% elif o[6] == 'PENDENTE' %}pendente
-        {% elif o[6] == 'AGUARDANDO PEÇAS' %}aguardando
-        {% elif o[6] == 'APROVADO' %}aprovado
+        {% if o[7] == 'FINALIZADA' %}finalizada
+        {% elif o[7] == 'EM ANDAMENTO' %}andamento
+        {% elif o[7] == 'PENDENTE' %}pendente
+        {% elif o[7] == 'AGUARDANDO PEÇAS' %}aguardando
+        {% elif o[7] == 'APROVADO' %}aprovado
         {% endif %}
         ">
-            {{ o[6] }}
+            {{ o[7] }}
         </span>
     </td>
-    <td>{{ o[7] }}</td>
-    <td>R$ {{ "%.2f"|format(o[8] or 0) }}</td>
+    <td>{{ o[8] }}</td>
+    <td>R$ {{ "%.2f"|format(o[9] or 0) }}</td>
 
     <td>
         <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>
@@ -170,14 +172,14 @@ tr:nth-child(even) {
     <div class="linha-topo">
         <strong>#{{ o[0] }}</strong>
         <span class="status 
-        {% if o[6] == 'FINALIZADA' %}finalizada
-        {% elif o[6] == 'EM ANDAMENTO' %}andamento
-        {% elif o[6] == 'PENDENTE' %}pendente
-        {% elif o[6] == 'AGUARDANDO PEÇAS' %}aguardando
-        {% elif o[6] == 'APROVADO' %}aprovado
+        {% if o[7] == 'FINALIZADA' %}finalizada
+        {% elif o[7] == 'EM ANDAMENTO' %}andamento
+        {% elif o[7] == 'PENDENTE' %}pendente
+        {% elif o[7] == 'AGUARDANDO PEÇAS' %}aguardando
+        {% elif o[7] == 'APROVADO' %}aprovado
         {% endif %}
         ">
-            {{ o[6] }}
+            {{ o[7] }}
         </span>
     </div>
 
@@ -186,11 +188,11 @@ tr:nth-child(even) {
     <div><strong>Placa:</strong> {{ o[3] }}</div>
 
     <div class="linha-info">
-        <span><strong>Total:</strong> R$ {{ "%.2f"|format(o[4]) }}</span>
-        <span><strong>Comissão:</strong> R$ {{ "%.2f"|format(o[8] or 0) }}</span>
+        <span><strong>Total:</strong> R$ {{ "%.2f"|format(o[5]) }}</span>
+        <span><strong>Comissão:</strong> R$ {{ "%.2f"|format(o[9] or 0) }}</span>
     </div>
 
-    <div><strong>Tipo:</strong> {{ o[5] }}</div>
+    <div><strong>Tipo:</strong> {{ o[6] }}</div>
 
     <a href="/abrir_os/{{ o[0] }}" class="btn-acao">Abrir</a>
 

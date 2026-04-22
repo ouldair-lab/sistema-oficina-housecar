@@ -72,6 +72,12 @@
         <label>Placa:</label>
         <input type="text" name="placa" value="{{ ordem[4] if ordem else '' }}">
     </div>
+
+    <div class="campo">
+        <label>Quilometragem:</label>
+        <input type="number" name="quilometragem" required
+            value="{{ ordem[13] if ordem else '' }}">
+    </div>
 </div>
 
 <div class="secao">

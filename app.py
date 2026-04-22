@@ -579,24 +579,29 @@ def excluir_orcamento(id):
 @app.route("/os", methods=["POST"])
 def os():    
     if proteger(): return proteger()
-
+    
     import json
     from datetime import datetime
 
     id = request.form.get("id")
 
     cliente = request.form.get("cliente")
-    telefone = request.form.get("telefone")  # 🔥 NOVO
+    telefone = request.form.get("telefone")
     veiculo = request.form.get("veiculo")
     placa = request.form.get("placa")
     mecanico = request.form.get("mecanico")
     problema = request.form.get("problema")
     diagnostico = request.form.get("diagnostico")
-    status = request.form.get("status")
-    if not status:
-        status = "EM ANDAMENTO"
+    status = request.form.get("status") or "EM ANDAMENTO"
+
     data_entrada = request.form.get("data_entrada")
     data_saida = request.form.get("data_saida")
+
+    # 🔥 CORREÇÃO AQUI
+    try:
+        quilometragem = int(request.form.get("quilometragem"))
+    except:
+        quilometragem = 0
 
     # 🧰 PEÇAS
     pecas = []
@@ -634,22 +639,16 @@ def os():
             pass
 
     # 💰 TOTAL
-    total = 0
-    for p in pecas:
-        total += p[1] * p[2]
-
-    for s in servicos:
-        total += s[1] * s[2]
+    total = sum(p[1] * p[2] for p in pecas) + sum(s[1] * s[2] for s in servicos)
 
     conn = conectar()
-    cursor = conn.cursor()
+    cursor = conn.cursor()    
 
     if id and id.isdigit() and int(id) > 0:
-        # 🔄 UPDATE
         cursor.execute("""
             UPDATE ordens SET
                 cliente=?,
-                telefone=?,   -- 🔥 NOVO
+                telefone=?,
                 veiculo=?,
                 placa=?,
                 problema=?,
@@ -658,49 +657,35 @@ def os():
                 mecanico=?,
                 status=?,
                 data_entrada=?,
-                data_saida=?
+                data_saida=?,
+                quilometragem=?
             WHERE id=?
         """, (
-            cliente,
-            telefone,  # 🔥 NOVO
-            veiculo,
-            placa,
-            problema,
-            diagnostico,
-            total,
-            mecanico,
-            status,
-            data_entrada,
-            data_saida,
-            id
+            cliente, telefone, veiculo, placa,
+            problema, diagnostico, total,
+            mecanico, status,
+            data_entrada, data_saida,
+            quilometragem, id
         ))
 
         ordem_id = id
-
-        # limpa itens
         cursor.execute("DELETE FROM itens WHERE ordem_id = ?", (ordem_id,))
 
-    else:
-        # ➕ NOVA
+    else:        
         cursor.execute("""
             INSERT INTO ordens (
                 cliente, telefone, veiculo, placa, problema, diagnostico,
-                total, tipo, status, mecanico, data_entrada
+                total, tipo, status, mecanico, data_entrada, data_saida, quilometragem
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            cliente,
-            telefone,  # 🔥 NOVO
-            veiculo,
-            placa,
-            problema,
-            diagnostico,
-            total,
-            "os",
-            "EM ANDAMENTO",
-            mecanico,
-            datetime.now().strftime("%Y-%m-%d")
-        ))
+            cliente, telefone, veiculo, placa,
+            problema, diagnostico, total,
+            "os", status, mecanico,
+            datetime.now().strftime("%Y-%m-%d"),
+            data_saida,
+            quilometragem
+        ))        
 
         ordem_id = cursor.lastrowid
 
@@ -719,19 +704,6 @@ def os():
         """, (ordem_id, "servico", s[0], s[1], s[2], int(s[3])))
 
     conn.commit()
-
-    # 🔥 INTEGRAÇÃO COM RECEITAS
-    if status == "FINALIZADA":
-
-        descricao = f"OS #{ordem_id} - {cliente} - {placa}"
-
-        gerar_ou_atualizar_receita_os(
-            ordem_id=ordem_id,
-            descricao=descricao,
-            valor_os=total,
-            data=data_saida if data_saida else datetime.now().strftime("%Y-%m-%d")
-        )
-
     conn.close()
 
     return redirect("/os_lista")
@@ -777,7 +749,16 @@ def os_lista():
     cursor = conn.cursor()
 
     query = """
-    SELECT o.id, o.cliente, o.veiculo, o.placa, o.total, o.tipo, o.status, o.mecanico,
+    SELECT 
+        o.id,
+        o.cliente,
+        o.veiculo,
+        o.placa,
+        o.total,
+        o.quilometragem,   -- 🔥 NOVO (posição segura)
+        o.tipo,
+        o.status,
+        o.mecanico,
         SUM(
             CASE 
                 WHEN i.tipo = 'servico' AND i.comissao = 1 THEN 
@@ -847,7 +828,7 @@ def abrir_os(id):
     conn = conectar()
     cursor = conn.cursor()
 
-    # 🔥 SELECT PADRONIZADO (IGUAL ORÇAMENTO)
+    # 🔥 SELECT PADRONIZADO (AGORA COM QUILOMETRAGEM)
     cursor.execute("""
         SELECT 
             id,
@@ -862,7 +843,8 @@ def abrir_os(id):
             status,
             mecanico,
             data_entrada,
-            data_saida
+            data_saida,
+            quilometragem
         FROM ordens 
         WHERE id = ?
     """, (id,))
@@ -894,7 +876,7 @@ def abrir_os(id):
     return render_template(
         "os.html",
         id=id,
-        ordem=ordem,  # 🔥 AGORA PADRÃO ÚNICO
+        ordem=ordem,
         pecas=pecas,
         servicos=servicos,
         mecanicos=mecanicos
@@ -1449,8 +1431,19 @@ def clientes():
 
         return redirect("/clientes")
 
+    busca = request.args.get("busca", "").strip().lower()
+
     dados = listar_clientes()
-    return render_template("clientes.html", clientes=dados)
+    dados = sorted(dados, key=lambda c: (c[1] or "").lower())
+
+    if busca:
+        dados = [
+            c for c in dados
+            if busca in (c[1] or "").lower()  # nome
+            or busca in (c[13] or "").lower()  # placa
+        ]
+
+    return render_template("clientes.html", clientes=dados, busca=busca)
 
 from flask import jsonify
 
