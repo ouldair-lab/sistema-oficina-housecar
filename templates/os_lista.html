@@ -188,7 +188,7 @@ tr:nth-child(even) {
     <div><strong>Placa:</strong> {{ o[3] }}</div>
 
     <div class="linha-info">
-        <span><strong>Total:</strong> R$ {{ "%.2f"|format(o[5]) }}</span>
+        <span><strong>Total:</strong> R$ {{ "%.2f"|format(o[5] or 0) }}</span>
         <span><strong>Comissão:</strong> R$ {{ "%.2f"|format(o[9] or 0) }}</span>
     </div>
 
