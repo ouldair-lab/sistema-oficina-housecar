@@ -170,22 +170,36 @@ document.addEventListener("submit", function(e){
 document.addEventListener("keydown", function(e){
     if(e.key === "Escape"){
 
+        // 🔥 1 - Fecha sugestões (autocomplete)
+        let lista = document.getElementById("lista_clientes");
+        if(lista && lista.innerHTML !== ""){
+            lista.innerHTML = "";
+            return;
+        }
+
+        // 🔥 2 - Fecha modais visíveis
+        let modalAberto = false;
+
         document.querySelectorAll(".modal").forEach(m => {
-            m.style.display = "none";
+            if(m.style.display === "block"){
+                m.style.display = "none";
+                modalAberto = true;
+            }
         });
 
         document.querySelectorAll("[id^='form'], [id^='modal']").forEach(el => {
             if(el.style.display === "block"){
                 el.style.display = "none";
+                modalAberto = true;
             }
         });
 
-        document.querySelectorAll("input").forEach(i => {
-            if(i.type !== "hidden"){
-                i.value = "";
-            }
-        });
+        if(modalAberto){
+            return;
+        }
 
+        // 🔥 3 - (OPCIONAL FUTURO)
+        // aqui você pode tratar casos específicos por página
     }
 });
 

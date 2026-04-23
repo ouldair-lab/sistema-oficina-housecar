@@ -37,6 +37,10 @@
     border-radius:8px;
     text-decoration:none;
 }
+
+.sugestoes {
+    margin-top: 5px;
+}
 </style>
 </head>
 
@@ -53,25 +57,32 @@
 <div class="secao">
     <h3>Dados do Cliente</h3>
 
-    <div class="campo">
+    <div class="campo" style="position: relative;">
         <label>Nome do Cliente:</label>
-        <input type="text" name="cliente" value="{{ ordem[1] if ordem else '' }}">
+        <input type="text" id="cliente" name="cliente"
+               value="{{ ordem[1] if ordem else '' }}"
+               oninput="buscarClientes(this.value)">
     </div>
 
-    <div class="item-campo">
+    <div class="campo">
         <label>Telefone:</label>
-        <input type="text" name="telefone" value="{{ ordem[2] if ordem else '' }}">
+        <input type="text" id="telefone" name="telefone"
+               value="{{ ordem[2] if ordem else '' }}">
     </div>
 
     <div class="campo">
         <label>Veículo:</label>
-        <input type="text" name="veiculo" value="{{ ordem[3] if ordem else '' }}">
+        <input type="text" id="veiculo" name="veiculo"
+               value="{{ ordem[3] if ordem else '' }}">
     </div>
 
     <div class="campo">
         <label>Placa:</label>
-        <input type="text" name="placa" value="{{ ordem[4] if ordem else '' }}">
+        <input type="text" id="placa" name="placa"
+               value="{{ ordem[4] if ordem else '' }}">
     </div>
+
+    <div id="lista_clientes" class="sugestoes"></div>
 
     <div class="campo">
         <label>Quilometragem:</label>
@@ -411,6 +422,51 @@ window.onload = function(){
     renderServicos();
     calcularTotalGeral();
 }
+
+async function buscarClientes(valor){
+    if(valor.length < 2){
+        limparSugestoes();
+        return;
+    }
+
+    let res = await fetch(`/buscar_cliente?q=${valor}`);
+    let lista = await res.json();
+
+    let html = "";
+
+    lista.forEach(c=>{
+        html += `<div class="sugestao-item"
+                    onclick='selecionarCliente(${JSON.stringify(c)})'>
+                    <strong>${c.nome}</strong><br>
+                    ${c.veiculo||""} - ${c.placa||""}
+                </div>`;
+    });
+
+    document.getElementById("lista_clientes").innerHTML = html;
+}
+
+function selecionarCliente(c){
+    document.getElementById("cliente").value = c.nome || "";
+    document.getElementById("telefone").value = c.telefone || "";
+    document.getElementById("veiculo").value = c.veiculo || "";
+    document.getElementById("placa").value = c.placa || "";
+
+    document.getElementById("lista_clientes").innerHTML = "";
+}
+
+function limparSugestoes(){
+    document.getElementById("lista_clientes").innerHTML = "";
+}
+
+document.addEventListener("click", function(e){
+    let campo = document.getElementById("cliente");
+    let lista = document.getElementById("lista_clientes");
+
+    if (!campo.contains(e.target) && !lista.contains(e.target)) {
+        limparSugestoes();
+    }
+});
+
 </script>
 
 </body>

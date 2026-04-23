@@ -576,6 +576,37 @@ def excluir_orcamento(id):
 
     return redirect("/orcamentos")
 
+@app.route("/orcamentos")
+def orcamentos():
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    from datetime import datetime, timedelta
+
+    limite = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
+
+    cursor.execute("""
+    DELETE FROM ordens
+    WHERE tipo = 'orcamento'
+    AND status = 'PENDENTE'
+    AND DATE(data_entrada) < DATE(?)
+    """, (limite,))
+
+    cursor.execute("""
+    SELECT id, cliente, veiculo, placa, total, status, mecanico
+    FROM ordens
+    WHERE tipo = 'orcamento'
+    AND status = 'PENDENTE'
+    ORDER BY id DESC
+    """)
+
+    dados = cursor.fetchall()
+    conn.close()
+
+    return render_template("orcamentos.html", ordens=dados)
+
 @app.route("/os", methods=["POST"])
 def os():    
     if proteger(): return proteger()
@@ -704,40 +735,22 @@ def os():
         """, (ordem_id, "servico", s[0], s[1], s[2], int(s[3])))
 
     conn.commit()
-    conn.close()
+
+    # 🔥 INTEGRAÇÃO COM RECEITAS
+    if status and status.strip().upper() == "FINALIZADA":
+
+        descricao = f"OS #{ordem_id} - {cliente} - {placa}"
+
+        gerar_ou_atualizar_receita_os(
+            ordem_id=ordem_id,
+            descricao=descricao,
+            valor_os=total,
+            data=data_saida if data_saida else datetime.now().strftime("%Y-%m-%d")
+        )
+
+        conn.close()
 
     return redirect("/os_lista")
-
-@app.route("/orcamentos")
-def orcamentos():
-    if proteger(): return proteger()
-
-    conn = conectar()
-    cursor = conn.cursor()
-
-    from datetime import datetime, timedelta
-
-    limite = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
-
-    cursor.execute("""
-    DELETE FROM ordens
-    WHERE tipo = 'orcamento'
-    AND status = 'PENDENTE'
-    AND DATE(data_entrada) < DATE(?)
-    """, (limite,))
-
-    cursor.execute("""
-    SELECT id, cliente, veiculo, placa, total, status, mecanico
-    FROM ordens
-    WHERE tipo = 'orcamento'
-    AND status = 'PENDENTE'
-    ORDER BY id DESC
-    """)
-
-    dados = cursor.fetchall()
-    conn.close()
-
-    return render_template("orcamentos.html", ordens=dados)
 
 @app.route("/os_lista")
 def os_lista():
