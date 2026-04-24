@@ -14,6 +14,7 @@ from banco import criar_tabela_usuarios
 from banco import criar_admin_padrao
 import os
 from werkzeug.utils import secure_filename
+import re
 
 app = Flask(__name__)
 
@@ -353,20 +354,30 @@ def index():
         aniversariantes=aniversariantes  # 👈 IMPORTANTE        
     )
 
+def normalizar_link_instagram(link):
+    link = link.strip()
+
+    match = re.search(r"instagram\.com/(reel|p)/([^/?]+)", link)
+
+    if match:
+        tipo = match.group(1)
+        codigo = match.group(2)
+        return f"https://www.instagram.com/{tipo}/{codigo}/embed"
+
+    return link
+
+
 @app.route('/admin/videos', methods=['GET', 'POST'])
 def admin_videos():
-    if proteger(): return proteger()
+    if proteger():
+        return proteger()
 
     if session.get('tipo') not in ['admin', 'marketing']:
         return redirect('/')
-    
+
     if request.method == 'POST':
         titulo = request.form['titulo']
-        link = request.form['link']
-
-        # 🔧 garante formato embed do Instagram
-        if "/embed" not in link:
-            link = link.rstrip("/") + "/embed"
+        link = normalizar_link_instagram(request.form['link'])
 
         from banco import conectar
         conn = conectar()
@@ -382,7 +393,6 @@ def admin_videos():
 
         return redirect('/admin/videos')
 
-    # 🔍 listar vídeos já cadastrados
     from banco import conectar
     conn = conectar()
     cursor = conn.cursor()
