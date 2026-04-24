@@ -12,6 +12,8 @@ from banco import listar_mecanicos
 from banco import criar_tabela_pagamentos
 from banco import criar_tabela_usuarios
 from banco import criar_admin_padrao
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -304,10 +306,33 @@ def editar_usuario(id):
 from banco import total_receitas_recebidas, total_despesas_pagas
 from banco import aniversariantes_hoje
 
-# 🌐 SITE (PÚBLICO)
+# SITE
 @app.route("/")
 def site():
-    return render_template("site.html")
+    from banco import conectar
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # 🎬 vídeos
+    cursor.execute("""
+        SELECT * FROM videos
+        ORDER BY id DESC
+        LIMIT 6
+    """)
+    videos = cursor.fetchall()
+
+    # 📸 fotos
+    cursor.execute("""
+        SELECT * FROM fotos
+        ORDER BY id DESC
+        LIMIT 8
+    """)
+    fotos = cursor.fetchall()
+
+    conn.close()
+
+    return render_template("site.html", videos=videos, fotos=fotos)
 
 # 🔐 PAINEL (SISTEMA)
 @app.route("/painel")
@@ -327,6 +352,144 @@ def index():
         despesas=despesas,
         aniversariantes=aniversariantes  # 👈 IMPORTANTE        
     )
+
+@app.route('/admin/videos', methods=['GET', 'POST'])
+def admin_videos():
+    if proteger(): return proteger()
+
+    if session.get('tipo') not in ['admin', 'marketing']:
+        return redirect('/')
+    
+    if request.method == 'POST':
+        titulo = request.form['titulo']
+        link = request.form['link']
+
+        # 🔧 garante formato embed do Instagram
+        if "/embed" not in link:
+            link = link.rstrip("/") + "/embed"
+
+        from banco import conectar
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO videos (titulo, link)
+            VALUES (?, ?)
+        """, (titulo, link))
+
+        conn.commit()
+        conn.close()
+
+        return redirect('/admin/videos')
+
+    # 🔍 listar vídeos já cadastrados
+    from banco import conectar
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM videos ORDER BY id DESC")
+    videos = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('admin_videos.html', videos=videos)
+
+@app.route('/admin/videos/excluir/<int:id>')
+def excluir_video(id):
+
+    if proteger():
+        return proteger()
+
+    if session.get('tipo') not in ['admin', 'marketing']:
+        return redirect('/')
+
+    from banco import conectar
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM videos WHERE id = ?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect('/admin/videos')
+
+
+@app.route('/admin/fotos', methods=['GET', 'POST'])
+def admin_fotos():
+
+    if proteger(): return proteger()
+
+    if session.get('tipo') not in ['admin', 'marketing']:
+        return redirect('/')
+
+    if request.method == 'POST':
+        arquivo = request.files['foto']
+
+        if arquivo:
+            nome_seguro = secure_filename(arquivo.filename)
+
+            caminho = os.path.join('static/fotos', nome_seguro)
+            arquivo.save(caminho)
+
+            from banco import conectar
+            conn = conectar()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                INSERT INTO fotos (arquivo)
+                VALUES (?)
+            """, (nome_seguro,))
+
+            conn.commit()
+            conn.close()
+
+        return redirect('/admin/fotos')
+
+    from banco import conectar
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM fotos ORDER BY id DESC")
+    fotos = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('admin_fotos.html', fotos=fotos)
+
+@app.route('/admin/fotos/excluir/<int:id>')
+def excluir_foto(id):
+
+    if proteger():
+        return proteger()
+
+    if session.get('tipo') not in ['admin', 'marketing']:
+        return redirect('/')
+
+    import os
+    from banco import conectar
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    # pega nome do arquivo
+    cursor.execute("SELECT arquivo FROM fotos WHERE id = ?", (id,))
+    foto = cursor.fetchone()
+
+    if foto:
+        caminho = os.path.join('static/fotos', foto[0])
+
+        # remove arquivo físico
+        if os.path.exists(caminho):
+            os.remove(caminho)
+
+        # remove do banco
+        cursor.execute("DELETE FROM fotos WHERE id = ?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect('/admin/fotos')
 
 @app.route("/financeiro")
 def financeiro():

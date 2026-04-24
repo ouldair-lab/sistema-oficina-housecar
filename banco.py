@@ -111,6 +111,25 @@ def criar_tabelas():
     )
     """)
 
+    # 🔷 VÍDEOS (SITE)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS videos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT,
+        link TEXT,
+        data DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # 🔷 FOTOS (SITE)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS fotos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        arquivo TEXT,
+        data DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -650,3 +669,4 @@ def calcular_comissao_periodo(mecanico, data_inicio, data_fim):
                 total_comissao += total_item * comissao_padrao
 
     return round(total_comissao, 2)
+

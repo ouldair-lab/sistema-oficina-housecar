@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Vídeos do Site</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+{% include "_header.html" %}
+
+<h2>🎬 Vídeos do Site</h2>
+
+<form method="POST">
+    <input type="text" name="titulo" placeholder="Título do vídeo" required>
+    <input type="text" name="link" placeholder="Link do Instagram" required>
+    <button type="submit">Salvar Vídeo</button>
+</form>
+
+<hr>
+
+{% for v in videos %}
+    <div class="card">
+        <strong>{{ v[1] }}</strong><br>
+
+        <a href="{{ v[2] }}" target="_blank">Ver no Instagram</a><br>
+
+        <a href="/admin/videos/excluir/{{ v[0] }}"
+            onclick="return confirm('Excluir este vídeo?')"
+            class="btn-excluir">
+            🗑️ Excluir
+        </a>
+    </div>
+{% endfor %}
+
+
+
+</body>
+</html>

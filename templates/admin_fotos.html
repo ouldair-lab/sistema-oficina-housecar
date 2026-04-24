@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Fotos do Site</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+{% include "_header.html" %}
+
+<h2>📸 Fotos da Oficina</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="foto" required>
+    <button type="submit">Enviar Foto</button>
+</form>
+
+<hr>
+
+<div class="galeria">
+
+{% for f in fotos %}
+    <div>
+        <img src="/static/fotos/{{ f[1] }}">
+
+        <a href="/admin/fotos/excluir/{{ f[0] }}"
+            onclick="return confirm('Excluir esta foto?')"
+            class="btn-excluir">
+            🗑️ Excluir
+        </a>
+    </div>
+{% endfor %}
+
+</div>
+
+<style>
+.galeria {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.galeria img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+@media (min-width: 768px){
+    .galeria {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+</style>
+
+</body>
+</html>
