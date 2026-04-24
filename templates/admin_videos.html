@@ -4,37 +4,92 @@
 <meta charset="UTF-8">
 <title>Vídeos do Site</title>
 <link rel="stylesheet" href="/static/style.css">
+
+<style>
+.admin-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-form input,
+.admin-form button {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.lista-videos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (max-width: 768px) {
+    .admin-wrap {
+        width: 100%;
+    }
+
+    .admin-form input,
+    .admin-form button {
+        font-size: 16px;
+        padding: 14px;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    .card strong {
+        font-size: 18px;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .card a {
+        display: inline-block;
+        margin-top: 8px;
+    }
+}
+</style>
 </head>
 
 <body>
 
 {% include "_header.html" %}
 
-<h2>🎬 Vídeos do Site</h2>
+<div class="admin-wrap">
+    <h2>🎬 Vídeos do Site</h2>
 
-<form method="POST">
-    <input type="text" name="titulo" placeholder="Título do vídeo" required>
-    <input type="text" name="link" placeholder="Link do Instagram" required>
-    <button type="submit">Salvar Vídeo</button>
-</form>
+    <form method="POST" class="admin-form">
+        <input type="text" name="titulo" placeholder="Título do vídeo" required>
+        <input type="text" name="link" placeholder="Link do Instagram" required>
+        <button type="submit">Salvar Vídeo</button>
+    </form>
 
-<hr>
+    <hr>
 
-{% for v in videos %}
-    <div class="card">
-        <strong>{{ v[1] }}</strong><br>
+    <div class="lista-videos">
+        {% for v in videos %}
+            <div class="card">
+                <strong>{{ v[1] }}</strong>
 
-        <a href="{{ v[2] }}" target="_blank">Ver no Instagram</a><br>
+                <a href="{{ v[2] }}" target="_blank">Ver no Instagram</a><br>
 
-        <a href="/admin/videos/excluir/{{ v[0] }}"
-            onclick="return confirm('Excluir este vídeo?')"
-            class="btn-excluir">
-            🗑️ Excluir
-        </a>
+                <a href="/admin/videos/excluir/{{ v[0] }}"
+                   onclick="return confirm('Excluir este vídeo?')"
+                   class="btn-excluir">
+                   🗑️ Excluir
+                </a>
+            </div>
+        {% endfor %}
     </div>
-{% endfor %}
-
-
+</div>
 
 </body>
 </html>

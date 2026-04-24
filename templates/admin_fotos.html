@@ -4,55 +4,97 @@
 <meta charset="UTF-8">
 <title>Fotos do Site</title>
 <link rel="stylesheet" href="/static/style.css">
+
+<style>
+.admin-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-form input,
+.admin-form button {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.galeria-admin {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.foto-card {
+    background: #1e293b;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.foto-card img {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+    .galeria-admin {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-wrap {
+        width: 100%;
+    }
+
+    .admin-form input,
+    .admin-form button {
+        font-size: 16px;
+        padding: 14px;
+    }
+
+    .galeria-admin {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 </head>
 
 <body>
 
 {% include "_header.html" %}
 
-<h2>📸 Fotos da Oficina</h2>
+<div class="admin-wrap">
+    <h2>📸 Fotos da Oficina</h2>
 
-<form method="POST" enctype="multipart/form-data">
-    <input type="file" name="foto" required>
-    <button type="submit">Enviar Foto</button>
-</form>
+    <form method="POST" enctype="multipart/form-data" class="admin-form">
+        <input type="file" name="foto" required>
+        <button type="submit">Enviar Foto</button>
+    </form>
 
-<hr>
+    <hr>
 
-<div class="galeria">
+    <div class="galeria-admin">
+        {% for f in fotos %}
+            <div class="foto-card">
+                <img src="/static/fotos/{{ f[1] }}">
 
-{% for f in fotos %}
-    <div>
-        <img src="/static/fotos/{{ f[1] }}">
-
-        <a href="/admin/fotos/excluir/{{ f[0] }}"
-            onclick="return confirm('Excluir esta foto?')"
-            class="btn-excluir">
-            🗑️ Excluir
-        </a>
+                <a href="/admin/fotos/excluir/{{ f[0] }}"
+                   onclick="return confirm('Excluir esta foto?')"
+                   class="btn-excluir">
+                   🗑️ Excluir
+                </a>
+            </div>
+        {% endfor %}
     </div>
-{% endfor %}
-
 </div>
-
-<style>
-.galeria {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-}
-
-.galeria img {
-    width: 100%;
-    border-radius: 10px;
-}
-
-@media (min-width: 768px){
-    .galeria {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-</style>
 
 </body>
 </html>
