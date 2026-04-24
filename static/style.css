@@ -5,6 +5,11 @@ body {
     background: #0b3d91;
     color: white;
     padding: 20px;
+    box-sizing: border-box;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 /* 🔷 CABEÇALHO */
@@ -15,9 +20,14 @@ body {
 
 .header img {
     width: 220px;
+    max-width: 100%;
 }
 
 /* 🔷 FORMULÁRIOS */
+form {
+    width: 100%;
+}
+
 .campo,
 .item-campo {
     margin-bottom: 10px;
@@ -34,13 +44,17 @@ body {
 .campo input,
 .campo textarea,
 .campo select,
-.item-campo input {
+.item-campo input,
+form input,
+form textarea,
+form select {
     width: 100%;
     padding: 10px;
     border-radius: 6px;
     border: none;
     background: #ffffff;
     color: #000;
+    font-size: 16px;
 }
 
 /* 🔷 BOTÕES */
@@ -53,6 +67,7 @@ button {
     cursor: pointer;
     width: 100%;
     margin-top: 10px;
+    font-size: 16px;
 }
 
 button:hover {
@@ -78,11 +93,29 @@ button:hover {
 
 /* 🔷 CARDS */
 .secao,
-.linha-item {
-    background: #1e3a8a;
+.linha-item,
+.card {
+    background: #1e293b;
     padding: 12px;
     border-radius: 10px;
     margin-bottom: 10px;
+    color: #e5e7eb;
+}
+
+.card strong {
+    color: #ffffff;
+    font-size: 18px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.card a {
+    color: #93c5fd;
+    text-decoration: none;
+}
+
+.card a:hover {
+    color: #60a5fa;
 }
 
 /* 🔷 DESCRIÇÃO */
@@ -92,27 +125,11 @@ button:hover {
     margin-bottom: 10px;
 }
 
-/* 🔷 LINHA VALORES (PC) */
+/* 🔷 LINHA VALORES */
 .linha-valores {
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
-
-/* botão excluir padrão sistema */
-.btn-remove {
-    background: #e63946;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    color: white;
-    margin-top: 8px;
-    cursor: pointer;
-}
-
-.btn-remove:hover {
-    background: #c1121f;
 }
 
 /* 🔷 CAMPOS INTERNOS */
@@ -129,13 +146,38 @@ button:hover {
     font-weight: bold;
 }
 
-/* 📱 MOBILE */
-@media (max-width: 600px){
-    .linha-valores {
-        grid-template-columns: 1fr;
-    }
+/* 🔷 BOTÕES EXCLUSÃO */
+.btn-remove {
+    background: #e63946;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: white;
+    margin-top: 8px;
+    cursor: pointer;
 }
 
+.btn-remove:hover {
+    background: #c1121f;
+}
+
+.btn-excluir {
+    background: #ef4444;
+    color: white !important;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+.btn-excluir:hover {
+    background: #dc2626;
+    color: white !important;
+}
+
+/* 🔷 HEADER ACTIONS */
 .btn-logout {
     background: #dc2626;
     color: white;
@@ -151,44 +193,10 @@ button:hover {
 }
 
 .btn-acao {
-    width: auto;
-    padding: 5px 8px;
-    border-radius: 6px;
-    display: inline-block;
-}
-
-table {
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 8px;
-    text-align: center;
-}
-
-.tabela-pecas {
-    width: 100%;
-    background: white;
-    border-collapse: collapse;
-    color: black;
-}
-
-.tabela-pecas th {
-    background: #1e3a8a;
-    color: white;
-    padding: 8px;
-}
-
-.tabela-pecas td {
-    padding: 8px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-}
-
-.btn-acao {
     width: auto !important;
     padding: 6px 10px;
     border-radius: 6px;
+    display: inline-block;
 }
 
 td button {
@@ -216,49 +224,52 @@ td button {
     color: #000 !important;
 }
 
-/* STATUS COLORS */
+/* 🔷 TABELAS */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
 
+th, td {
+    padding: 8px;
+    text-align: center;
+}
+
+.tabela-pecas {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    color: black;
+}
+
+.tabela-pecas th {
+    background: #1e3a8a;
+    color: white;
+    padding: 8px;
+}
+
+.tabela-pecas td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+/* STATUS COLORS */
 .status {
     padding: 4px 10px;
     border-radius: 6px;
     font-weight: bold;
     font-size: 13px;
-}
-
-/* 🔵 EM ANDAMENTO */
-.status.andamento {
-    background: #3b82f6;
-    color: white;
-}
-
-/* 🟡 AGUARDANDO PEÇAS */
-.status.aguardando {
-    background: #facc15;
-    color: black;
-}
-
-/* 🟠 PENDENTE */
-.status.pendente {
-    background: #f97316;
-    color: white;
-}
-
-/* 🟢 FINALIZADA */
-.status.finalizada {
-    background: #22c55e;
-    color: white;
-}
-
-/* 🔴 CANCELADA */
-.status.cancelada {
-    background: #ef4444;
-    color: white;
-}
-
-.status {
     box-shadow: 0 0 6px rgba(0,0,0,0.2);
 }
 
+.status.andamento { background: #3b82f6; color: white; }
+.status.aguardando { background: #facc15; color: black; }
+.status.pendente { background: #f97316; color: white; }
+.status.finalizada { background: #22c55e; color: white; }
+.status.cancelada { background: #ef4444; color: white; }
+
+/* 🔷 SUGESTÕES */
 .sugestoes {
     position: absolute;
     background: white;
@@ -281,7 +292,7 @@ td button {
     background: #f2f2f2;
 }
 
-/* VIDEOS */
+/* 🔷 VÍDEOS */
 .video-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -305,6 +316,7 @@ td button {
     margin-bottom: 5px;
 }
 
+/* 🔷 GALERIA */
 .galeria {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -317,14 +329,7 @@ td button {
     border-radius: 10px;
 }
 
-/* Desktop */
-@media (min-width: 768px){
-    .galeria {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-/* MODAL */
+/* 🔷 MODAL */
 .modal {
     display: none;
     position: fixed;
@@ -359,78 +364,46 @@ td button {
     cursor: pointer;
 }
 
-/* ========================= */
-/* 📋 LISTAS ADMIN */
-/* ========================= */
-
-.card {
-    background: #1e293b;
-    color: #e5e7eb; /* texto claro */
-}
-
-.card strong {
-    color: #ffffff; /* título mais forte */
-}
-
-/* links normais */
-.card a {
-    color: #93c5fd; /* azul claro */
-    text-decoration: none;
-}
-
-.card a:hover {
-    color: #60a5fa;
-}
-
-/* botão excluir */
-.btn-excluir {
-    background: #ef4444;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 6px;
-    display: inline-block;
-}
-
-.btn-excluir:hover {
-    color: #dc2626 !important;
-}
-
-/* ========================= */
-/* 📱 AJUSTES MOBILE */
-/* ========================= */
+/* 📱 MOBILE */
 @media (max-width: 768px) {
-
     body {
+        padding: 12px;
         font-size: 16px;
     }
 
     h1, h2, h3 {
-        font-size: 24px;
+        font-size: 28px;
         text-align: center;
+        margin-bottom: 15px;
     }
 
-    form {
-        width: 100%;
-    }
-
+    form input,
+    form textarea,
+    form select,
     input,
-    select,
     textarea,
+    select,
     button {
         width: 100%;
+        display: block;
         font-size: 16px;
-        padding: 12px;
+        padding: 14px;
         margin-bottom: 10px;
-        box-sizing: border-box;
     }
 
     .container {
-        padding: 15px;
+        padding: 10px;
     }
 
-    .card {
+    .card,
+    .secao,
+    .linha-item {
         padding: 15px;
         font-size: 16px;
+    }
+
+    .card strong {
+        font-size: 20px;
     }
 
     .btn-menu {
@@ -439,9 +412,24 @@ td button {
         padding: 15px;
     }
 
+    .video-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .galeria {
+        grid-template-columns: 1fr;
+    }
+
     table {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+    }
+}
+
+/* DESKTOP */
+@media (min-width: 768px) {
+    .galeria {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
