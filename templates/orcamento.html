@@ -121,7 +121,17 @@
     <button type="submit" class="btn">
         💾 Salvar Orçamento
     </button>
-    <button type="button" class="btn-zap" onclick="enviarWhatsApp()">📲 Enviar WhatsApp</button>
+
+    <button type="button" class="btn-zap" onclick="enviarWhatsApp()">
+        📲 Enviar WhatsApp
+    </button>
+
+    {% if id and id != 0 %}
+    <button type="button" class="btn"
+            onclick="window.open('/gerar_orcamento/{{ id }}', '_blank')">
+        🖨 Imprimir Orçamento
+    </button>
+    {% endif %}
 </div>
 
 </form>

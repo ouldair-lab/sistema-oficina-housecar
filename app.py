@@ -1317,6 +1317,190 @@ def gerar_nota(id):
 
     return send_file(caminho, as_attachment=False)
 
+@app.route("/gerar_orcamento/<int:id>")
+def gerar_orcamento(id):
+    if proteger(): return proteger()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT cliente, veiculo, placa, problema, diagnostico, total,
+           data_entrada, mecanico
+    FROM ordens
+    WHERE id = ? AND tipo = 'orcamento'
+    """, (id,))
+    ordem = cursor.fetchone()
+
+    if not ordem:
+        conn.close()
+        return "Orçamento não encontrado"
+
+    cursor.execute("""
+    SELECT tipo, nome, valor, quantidade
+    FROM itens
+    WHERE ordem_id = ?
+    """, (id,))
+    itens = cursor.fetchall()
+
+    conn.close()
+
+    (cliente, veiculo, placa, problema, diagnostico, total,
+     data_entrada, mecanico) = ordem
+
+    data_entrada_fmt = formatar_data(data_entrada)
+
+    import re, textwrap, os
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    def limpar_texto(txt):
+        return re.sub(r'[^a-zA-Z0-9]', '_', txt or "")
+
+    cliente_limpo = limpar_texto(cliente)
+    placa_limpa = limpar_texto(placa)
+
+    nome_arquivo = f"ORC_{id}_{cliente_limpo}_{placa_limpa}.pdf"
+
+    pasta = "notas"
+    os.makedirs(pasta, exist_ok=True)
+    caminho = os.path.join(pasta, nome_arquivo)
+
+    c = canvas.Canvas(caminho, pagesize=A4)
+    largura, altura = A4
+
+    # LOGO
+    try:
+        c.drawImage("static/logo_housecar.png", largura/2 - 110, altura - 110, width=220, height=80)
+    except:
+        pass
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(largura/2, altura - 130, "ORÇAMENTO")
+
+    y = altura - 170
+
+    # CLIENTE
+    c.rect(50, y - 80, 500, 80)
+    c.line(50, y - 30, 550, y - 30)
+    c.line(50, y - 55, 550, y - 55)
+
+    c.setFont("Helvetica", 10)
+    c.drawString(60, y - 20, f"Cliente: {cliente}")
+    c.drawString(60, y - 45, f"Veículo: {veiculo}")
+    c.drawString(60, y - 70, f"Placa: {placa}")
+
+    y -= 100
+
+    # DATA / MECÂNICO
+    c.rect(50, y - 40, 500, 40)
+    c.drawString(60, y - 20, f"Data: {data_entrada_fmt}")
+    c.drawString(320, y - 20, f"Mecânico: {mecanico or ''}")
+
+    y -= 60
+
+    def caixa_texto(titulo, texto, altura_box):
+        nonlocal y
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(50, y, titulo)
+
+        y -= 10
+        c.rect(50, y - altura_box, 500, altura_box)
+
+        c.setFont("Helvetica", 9)
+        linhas = textwrap.wrap(texto or "", 90)
+
+        yy = y - 15
+        for linha in linhas[:5]:
+            c.drawString(55, yy, linha)
+            yy -= 12
+
+        y -= (altura_box + 20)
+
+    caixa_texto("Problema Relatado:", problema, 50)
+    caixa_texto("Diagnóstico / Solução:", diagnostico, 70)
+
+    pecas = []
+    servicos = []
+
+    for tipo, nome, valor, qtd in itens:
+        if tipo == "peca":
+            pecas.append((nome, valor, qtd))
+        else:
+            servicos.append((nome, valor, qtd))
+
+    def desenhar_tabela(titulo, lista):
+        nonlocal y
+
+        if not lista:
+            return 0
+
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(50, y, titulo)
+        y -= 20
+
+        altura_linha = 18
+        x_inicio = 50
+        x_qtd = 100
+        x_desc = 420
+        x_fim = 550
+
+        topo = y
+
+        c.setFillGray(0.85)
+        c.rect(x_inicio, y - altura_linha, x_fim - x_inicio, altura_linha, fill=1, stroke=1)
+
+        c.setFillColorRGB(0,0,0)
+        c.setFont("Helvetica-Bold", 10)
+
+        c.drawCentredString(75, y - 13, "QTD")
+        c.drawCentredString(260, y - 13, "DESCRIÇÃO")
+        c.drawCentredString(480, y - 13, "VALOR")
+
+        y -= altura_linha
+        c.setFont("Helvetica", 9)
+
+        subtotal = 0
+
+        for nome, valor, qtd in lista:
+            total_item = float(valor) * int(qtd)
+            subtotal += total_item
+
+            c.drawCentredString(75, y - 12, str(qtd))
+            c.drawString(105, y - 12, nome[:45])
+            c.drawRightString(540, y - 12, f"R$ {total_item:.2f}")
+            c.line(x_inicio, y - altura_linha, x_fim, y - altura_linha)
+
+            y -= altura_linha
+
+        base = y
+
+        c.line(x_inicio, topo, x_inicio, base)
+        c.line(x_qtd, topo, x_qtd, base)
+        c.line(x_desc, topo, x_desc, base)
+        c.line(x_fim, topo, x_fim, base)
+
+        c.line(x_inicio, topo, x_fim, topo)
+        c.line(x_inicio, base, x_fim, base)
+
+        y -= 15
+        return subtotal
+
+    desenhar_tabela("PEÇAS", pecas)
+    desenhar_tabela("SERVIÇOS", servicos)
+
+    y -= 10
+    c.setFont("Helvetica-Bold", 12)
+    c.drawRightString(540, y, f"TOTAL GERAL: R$ {total:.2f}")
+
+    y -= 30
+    c.setFont("Helvetica", 9)
+    c.drawString(50, y, "Validade do orçamento: 3 dias.")
+
+    c.save()
+
+    return send_file(caminho, as_attachment=False)
+
 @app.route("/notas")
 def notas():
     if proteger(): return proteger()
