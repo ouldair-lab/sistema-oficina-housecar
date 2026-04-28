@@ -76,6 +76,20 @@ tr:nth-child(even) {
     padding: 15px;
     border-radius: 15px 15px 0 0;
 }
+
+.paginacao-btn {
+    margin: 3px;
+    padding: 6px 10px;
+    background: #1e3a8a;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.paginacao-btn.ativo {
+    background: #22c55e;
+}
 </style>
 </head>
 
@@ -128,6 +142,7 @@ tr:nth-child(even) {
             data-valor="{{ r[5] }}"
             data-forma="{{ r[6] }}"
             data-status="{{ r[7] }}"
+            data-data="{{ r[8] }}"
             onclick="abrirEdit(this)">
             ✏️
         </button>
@@ -164,6 +179,8 @@ tr:nth-child(even) {
         <option value="PENDENTE">Pendente</option>
     </select>
 
+    <input type="date" name="data" value="{{ hoje }}">
+
     <button type="submit">Salvar</button>
     <button type="button" onclick="fecharModal()">Cancelar</button>
 
@@ -192,6 +209,8 @@ tr:nth-child(even) {
         <option value="PENDENTE">Pendente</option>
     </select>
 
+    <input type="date" name="data" id="edit_data">
+
     <button type="submit">Salvar</button>
     <button type="button" onclick="fecharEdit()">Cancelar</button>
 
@@ -211,10 +230,8 @@ tr:nth-child(even) {
 
         {% for p in range(1, total_paginas + 1) %}
             <a href="?pagina={{ p }}"
-               style="margin:3px; padding:6px 10px; 
-               background: {% if p == pagina %}#22c55e{% else %}#1e3a8a{% endif %};
-               color:white; border-radius:5px; text-decoration:none;">
-                {{ p }}
+                class="paginacao-btn {% if p == pagina %}ativo{% endif %}">
+                    {{ p }}
             </a>
         {% endfor %}
 
@@ -245,6 +262,7 @@ function abrirEdit(btn){
     document.getElementById("edit_valor").value = btn.dataset.valor;
     document.getElementById("edit_forma").value = btn.dataset.forma;
     document.getElementById("edit_status").value = btn.dataset.status;
+    document.getElementById("edit_data").value = btn.dataset.data;
 
     document.getElementById("formEdit").action = "/editar_receita/" + btn.dataset.id;
 }

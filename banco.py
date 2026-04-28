@@ -189,15 +189,15 @@ def buscar_receita_por_ordem(ordem_id):
     return dado
 
 
-def atualizar_receita(id, valor_final, forma, status):
+def atualizar_receita(id, valor_final, forma, status, data):
     conn = conectar()
     cursor = conn.cursor()
 
     cursor.execute("""
     UPDATE receitas
-    SET valor_final = ?, forma_pagamento = ?, status = ?
+    SET valor_final = ?, forma_pagamento = ?, status = ?, data = ?
     WHERE id = ?
-    """, (valor_final, forma, status, id))
+    """, (valor_final, forma, status, data, id))
 
     conn.commit()
     conn.close()

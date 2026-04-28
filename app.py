@@ -1545,6 +1545,8 @@ def receitas():
         forma = request.form.get("forma")
         status = request.form.get("status")
 
+        data = request.form.get("data") or datetime.now().strftime("%Y-%m-%d")
+
         inserir_receita(
             origem="VENDA",
             ordem_id=None,
@@ -1553,7 +1555,7 @@ def receitas():
             valor_final=valor,
             forma=forma,
             status=status,
-            data=datetime.now().strftime("%Y-%m-%d")
+            data=data
         )
 
     # 🔥 PAGINAÇÃO
@@ -1604,7 +1606,8 @@ def receitas():
         total_debito=total_debito,
         total_credito=total_credito,
         pagina=pagina,
-        total_paginas=total_paginas
+        total_paginas=total_paginas,
+        hoje=datetime.now().strftime("%Y-%m-%d")
     )
 
 from banco import atualizar_receita
@@ -1612,11 +1615,13 @@ from banco import atualizar_receita
 @app.route("/editar_receita/<int:id>", methods=["POST"])
 def editar_receita(id):
     if proteger(): return proteger()
+
     valor = float(request.form.get("valor") or 0)
     forma = request.form.get("forma")
     status = request.form.get("status")
+    data = request.form.get("data")
 
-    atualizar_receita(id, valor, forma, status)
+    atualizar_receita(id, valor, forma, status, data)
 
     return redirect("/receitas")
 
