@@ -4,7 +4,7 @@ body {
     font-family: Arial, sans-serif;
     background: #0b3d91;
     color: white;
-    padding: 20px;
+    padding: 0;
 }
 
 /* 🔷 CABEÇALHO */
@@ -439,9 +439,21 @@ td button {
         padding: 15px;
     }
 
-    table {
-        display: block;
+    .tabela-container {
+        width: 100%;
         overflow-x: auto;
-        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
     }
+
+    .tabela-container table {
+        min-width: 700px;
+        width: 100%;
+    }
+    
+}
+
+main,
+.container {
+    padding: 15px;
+    box-sizing: border-box;
 }
