@@ -1681,7 +1681,7 @@ def despesas():
                 WHEN status = 'PENDENTE' THEN 1
                 ELSE 2
             END,
-            vencimento ASC,
+            vencimento DESC,
             id DESC
         LIMIT {por_pagina} OFFSET {offset}
     """)
