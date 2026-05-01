@@ -203,4 +203,51 @@ document.addEventListener("keydown", function(e){
     }
 });
 
+// ==============================
+// 🔥 ENTER = SALVAR
+// ==============================
+
+document.addEventListener("keydown", function(e){
+
+    if(e.key !== "Enter") return;
+
+    let el = e.target;
+
+    // textarea mantém quebra de linha
+    if(el.tagName === "TEXTAREA") return;
+
+    // campo de busca mantém comportamento normal
+    if(el.name === "busca") return;
+
+    // ações nativas seguem normal
+    if(el.tagName === "BUTTON" || el.tagName === "A") return;
+
+    let form = el.closest("form");
+    if(!form) return;
+
+    // ignora tela de OS / Orçamento (tem lógica própria)
+    if(
+        window.location.pathname.includes("/abrir_os/") ||
+        window.location.pathname.includes("/orcamento")
+    ) return;
+
+    e.preventDefault();
+
+    // tenta botão mais próximo dentro do mesmo bloco visual
+    let bloco = el.closest(".linha-item, .secao, .modal, .item, .card, .campo, .item-campo") || form;
+
+    let btn = bloco.querySelector('button[type="submit"], input[type="submit"]');
+
+    // fallback: procura no form
+    if(!btn){
+        btn = form.querySelector('button[type="submit"], input[type="submit"]');
+    }
+
+    if(btn){
+        btn.click();
+    }else{
+        form.requestSubmit();
+    }
+});
+
 </script>

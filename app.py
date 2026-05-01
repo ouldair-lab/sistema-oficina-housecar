@@ -1578,7 +1578,8 @@ def receitas():
                 WHEN status = 'PENDENTE' THEN 1
                 ELSE 2
             END,
-            data DESC
+            data DESC,
+            id DESC
         LIMIT {por_pagina} OFFSET {offset}
     """)
 
@@ -1680,7 +1681,8 @@ def despesas():
                 WHEN status = 'PENDENTE' THEN 1
                 ELSE 2
             END,
-            vencimento ASC
+            vencimento ASC,
+            id DESC
         LIMIT {por_pagina} OFFSET {offset}
     """)
     dados = cursor.fetchall()

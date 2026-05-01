@@ -396,6 +396,39 @@ function enviarWhatsApp(){
     let url = `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`;
     window.open(url,"_blank");
 }
+
+// ==============================
+// 🔥 ENTER INTELIGENTE (ORÇAMENTO)
+// ==============================
+
+document.addEventListener("keydown", function(e){
+    if(e.key !== "Enter") return;
+
+    let el = e.target;
+    let id = el.id || "";
+
+    // textarea mantém quebra de linha
+    if(el.tagName === "TEXTAREA") return;
+
+    // autocomplete não dispara enter
+    if(id === "cliente" || id === "placa") return;
+
+    // 🔧 BLOCO PEÇAS
+    if(["peca_nome", "peca_qtd", "peca_valor"].includes(id)){
+        e.preventDefault();
+        adicionarPeca();
+        return;
+    }
+
+    // 🛠 BLOCO SERVIÇOS
+    if(["servico_nome", "servico_qtd", "servico_valor"].includes(id)){
+        e.preventDefault();
+        adicionarServico();
+        return;
+    }
+
+    // fora desses blocos, não interfere
+});
 </script>
 
 </body>

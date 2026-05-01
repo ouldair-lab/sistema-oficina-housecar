@@ -467,6 +467,39 @@ document.addEventListener("click", function(e){
     }
 });
 
+// ==============================
+// 🔥 ENTER INTELIGENTE (OS / ORÇAMENTO)
+// ==============================
+
+document.addEventListener("keydown", function(e){
+    if(e.key !== "Enter") return;
+
+    let el = e.target;
+    let id = el.id || "";
+
+    // textarea mantém quebra de linha
+    if(el.tagName === "TEXTAREA") return;
+
+    // sugestões/autocomplete do cliente não disparam enter
+    if(id === "cliente") return;
+
+    // 🔧 BLOCO PEÇAS
+    if(["peca_nome", "peca_qtd", "peca_valor"].includes(id)){
+        e.preventDefault();
+        adicionarPeca();
+        return;
+    }
+
+    // 🛠 BLOCO SERVIÇOS
+    if(["servico_nome", "servico_qtd", "servico_valor"].includes(id)){
+        e.preventDefault();
+        adicionarServico();
+        return;
+    }
+
+    // fora dos blocos específicos, não interfere
+});
+
 </script>
 
 </body>
