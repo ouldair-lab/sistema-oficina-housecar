@@ -994,10 +994,19 @@ def os_lista():
 
     params = []
 
+    # 🔷 PAGINAÇÃO
+    pagina = int(request.args.get("pagina", 1))
+    por_pagina = 12
+    offset = (pagina - 1) * por_pagina
+
     if busca:
         query += " AND (LOWER(o.cliente) LIKE ? OR LOWER(o.placa) LIKE ?)"
         busca_like = f"%{busca}%"
         params.extend([busca_like, busca_like])
+
+    # 🔷 QUERY TOTAL
+    query_total = query
+    params_total = params.copy()
 
     query += """
     GROUP BY o.id
@@ -1010,13 +1019,38 @@ def os_lista():
         END,
         o.id DESC
     """
+    # 🔷 TOTAL DE REGISTROS
+    cursor.execute(f"""
+    SELECT COUNT(*) FROM (
+        {query_total}
+        GROUP BY o.id
+    )
+    """, params_total)
+
+    total_registros = cursor.fetchone()[0]
+
+    # 🔷 PAGINAÇÃO SQL
+    query += f"""
+    LIMIT {por_pagina} OFFSET {offset}
+    """
+
 
     cursor.execute(query, params)
 
     ordens = cursor.fetchall()
+    total_paginas = (
+        total_registros // por_pagina
+        + (1 if total_registros % por_pagina else 0)
+    )
     conn.close()
 
-    return render_template("os_lista.html", ordens=ordens, busca=busca)
+    return render_template(
+        "os_lista.html",
+        ordens=ordens,
+        busca=busca,
+        pagina=pagina,
+        total_paginas=total_paginas
+    )
 
 @app.route("/abrir_os/<int:id>")
 def abrir_os(id):
