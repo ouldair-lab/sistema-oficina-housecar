@@ -78,7 +78,10 @@
     
 </div>
 
-<h3>🔧 Peças</h3>
+<h3>
+    🔧 Peças |
+    TOTAL: R$ <span id="total_pecas">0.00</span>
+</h3>
 
 <div id="tabela_pecas"></div>
 
@@ -94,7 +97,10 @@
     </button>
 </div>
 
-<h3>🛠 Serviços</h3>
+<h3>
+    🛠 Serviços |
+    TOTAL: R$ <span id="total_servicos">0.00</span>
+</h3>
 
 <div id="tabela_servicos"></div>
 
@@ -175,6 +181,9 @@ function editarPeca(index){
 }
 
 function renderPecas(){
+
+    let totalPecas = 0;
+
     let html = `
         <table class="tabela-pecas">
             <thead>
@@ -190,7 +199,10 @@ function renderPecas(){
     `;
 
     pecas.forEach((p, i) => {
+
         let total = p.qtd * p.valor;
+
+        totalPecas += total;
 
         html += `
             <tr>
@@ -210,8 +222,10 @@ function renderPecas(){
 
     html += "</tbody></table>";
 
-    document.getElementById("tabela_pecas").innerHTML = html;
+    document.getElementById("tabela_pecas").innerHTML = html;    
     document.getElementById("pecas_json").value = JSON.stringify(pecas);
+
+    document.getElementById("total_pecas").innerText = totalPecas.toFixed(2);
 
     calcularTotalGeral();
 }
@@ -257,6 +271,8 @@ function editarServico(index){
 }
 
 function renderServicos(){
+
+    let totalServicos = 0;
     let html = `
         <table class="tabela-pecas">
             <thead>
@@ -274,6 +290,7 @@ function renderServicos(){
 
     servicos.forEach((s, i) => {
         let total = s.qtd * s.valor;
+        totalServicos += total;
 
         html += `
             <tr>
@@ -296,6 +313,7 @@ function renderServicos(){
 
     document.getElementById("tabela_servicos").innerHTML = html;
     document.getElementById("servicos_json").value = JSON.stringify(servicos);
+    document.getElementById("total_servicos").innerText = totalServicos.toFixed(2);
 
     calcularTotalGeral();
 }

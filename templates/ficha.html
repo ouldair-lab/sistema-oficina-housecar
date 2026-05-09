@@ -125,12 +125,43 @@ button {
 
 /* 🔷 IMPRESSÃO (NÃO ALTERAR) */
 @media print {
+
     button {
         display: none;
     }
 
     body {
-        margin: 20px;
+        margin: 10mm;
+        zoom: 95%;
+    }
+
+    .table-container {
+        overflow: visible !important;
+    }
+
+    table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+
+    h3 {
+        page-break-after: avoid;
+    }
+
+    .box {
+        page-break-inside: avoid;
     }
 }
 </style>
@@ -208,6 +239,18 @@ button {
 </tr>
 {% endfor %}
 </table>
+</div>
+
+<div class="total" style="margin-bottom:10px;">
+    TOTAL PEÇAS: R$ {{ "%.2f"|format(
+        pecas|sum(attribute='total')
+    ) }}
+</div>
+
+<div class="total" style="margin-bottom:10px;">
+    TOTAL SERVIÇOS: R$ {{ "%.2f"|format(
+        servicos|sum(attribute='total')
+    ) }}
 </div>
 
 <!-- 🔷 TOTAL -->

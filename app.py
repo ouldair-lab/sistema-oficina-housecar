@@ -945,21 +945,45 @@ def os_lista():
         o.tipo,
         o.status,
         o.mecanico,
-        SUM(
-            CASE 
-                WHEN i.tipo = 'servico' AND i.comissao = 1 THEN 
-                    CASE 
-                        WHEN (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) <= (
-                            SELECT limite_baixa FROM mecanicos WHERE nome = o.mecanico
-                        )
-                        THEN (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) * (
-                            SELECT comissao_baixa FROM mecanicos WHERE nome = o.mecanico
-                        )
-                        ELSE (CAST(i.valor AS REAL) * CAST(i.quantidade AS REAL)) * (
-                            SELECT comissao_padrao FROM mecanicos WHERE nome = o.mecanico
-                        )
-                    END
-                ELSE 0
+        MAX(
+            CASE
+
+                WHEN COALESCE((
+                    SELECT SUM(i2.valor * i2.quantidade)
+                    FROM itens i2
+                    WHERE i2.ordem_id = o.id
+                    AND i2.tipo = 'servico'
+                    AND i2.comissao = 1
+                ), 0) <= (
+                    SELECT limite_baixa
+                    FROM mecanicos
+                    WHERE nome = o.mecanico
+                )
+
+                THEN COALESCE((
+                    SELECT SUM(i2.valor * i2.quantidade)
+                    FROM itens i2
+                    WHERE i2.ordem_id = o.id
+                    AND i2.tipo = 'servico'
+                    AND i2.comissao = 1
+                ), 0) * (
+                    SELECT comissao_baixa
+                    FROM mecanicos
+                    WHERE nome = o.mecanico
+                )
+
+                ELSE COALESCE((
+                    SELECT SUM(i2.valor * i2.quantidade)
+                    FROM itens i2
+                    WHERE i2.ordem_id = o.id
+                    AND i2.tipo = 'servico'
+                    AND i2.comissao = 1
+                ), 0) * (
+                    SELECT comissao_padrao
+                    FROM mecanicos
+                    WHERE nome = o.mecanico
+                )
+
             END
         ) as comissao_total
     FROM ordens o
@@ -1245,16 +1269,15 @@ def gerar_nota(id):
             return 0
 
         c.setFont("Helvetica-Bold", 11)
-        c.drawString(50, y, titulo)
-        y -= 20
+        c.drawCentredString(260, y, titulo)
+        y -= 14
 
         altura_linha = 18
         x_inicio = 50
         x_qtd = 100
         x_desc = 420
         x_fim = 550
-
-        topo = y  # 🔥 guarda topo da tabela
+     
 
         # 🔷 CABEÇALHO
         c.setFillGray(0.85)
@@ -1268,6 +1291,7 @@ def gerar_nota(id):
         c.drawCentredString(480, y - 13, "VALOR")
 
         y -= altura_linha
+        topo = y + altura_linha
 
         c.setFont("Helvetica", 9)
 
@@ -1275,6 +1299,51 @@ def gerar_nota(id):
 
         # 🔷 LINHAS
         for nome, valor, qtd in lista:
+
+            # 🔥 QUEBRA DE PÁGINA
+            if y < 120:
+                # 🔥 FECHA TABELA DA PÁGINA ANTERIOR
+                base = y
+
+                c.line(x_inicio, topo, x_inicio, base)
+                c.line(x_qtd, topo, x_qtd, base)
+                c.line(x_desc, topo, x_desc, base)
+                c.line(x_fim, topo, x_fim, base)
+
+                c.line(x_inicio, base, x_fim, base)
+
+                c.showPage()
+                # 🔷 CABEÇALHO DA NOVA PÁGINA
+                try:
+                    c.drawImage("static/logo_housecar.png", largura/2 - 110, altura - 110, width=220, height=80)
+                except:
+                    pass
+
+                c.setFont("Helvetica-Bold", 16)
+                c.drawCentredString(largura/2, altura - 130, "NOTA DE SERVIÇO")
+
+                y = altura - 155
+                
+                # 🔷 REPETE CABEÇALHO
+                c.setFont("Helvetica-Bold", 11)
+                c.drawCentredString(260, y, titulo)
+                y -= 14
+
+                c.setFillGray(0.85)
+                c.rect(x_inicio, y - altura_linha, x_fim - x_inicio, altura_linha, fill=1, stroke=1)
+
+                c.setFillColorRGB(0,0,0)
+                c.setFont("Helvetica-Bold", 10)
+
+                c.drawCentredString(75, y - 13, "QTD")
+                c.drawCentredString(260, y - 13, "DESCRIÇÃO")
+                c.drawCentredString(480, y - 13, "VALOR")
+
+                y -= altura_linha
+                topo = y + altura_linha
+
+                c.setFont("Helvetica", 9)
+
             total_item = float(valor) * int(qtd)
             subtotal += total_item
 
@@ -1286,7 +1355,7 @@ def gerar_nota(id):
             c.line(x_inicio, y - altura_linha, x_fim, y - altura_linha)
 
             y -= altura_linha
-
+        
         # 🔥 BORDA COMPLETA
         base = y
 
@@ -1300,7 +1369,18 @@ def gerar_nota(id):
         c.line(x_inicio, topo, x_fim, topo)
         c.line(x_inicio, base, x_fim, base)
 
-        y -= 15
+        # 🔷 SUBTOTAL ABAIXO DA TABELA
+        y -= 18
+
+        c.setFont("Helvetica-Bold", 10)
+
+        c.drawRightString(
+            540,
+            y,
+            f"SUBTOTAL {titulo}: R$ {subtotal:.2f}"
+        )
+
+        y -= 30
 
         return subtotal
 
@@ -1309,8 +1389,9 @@ def gerar_nota(id):
 
     y -= 10
 
+    
     # 🔷 TOTAL FINAL
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont("Helvetica-Bold", 13)
     c.drawRightString(540, y, f"TOTAL GERAL: R$ {total:.2f}")
 
     c.save()
