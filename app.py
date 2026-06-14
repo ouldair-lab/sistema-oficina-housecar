@@ -1925,6 +1925,10 @@ def clientes():
 
     busca = request.args.get("busca", "").strip().lower()
 
+    # 🔷 PAGINAÇÃO
+    pagina = int(request.args.get("pagina", 1))
+    por_pagina = 10
+
     dados = listar_clientes()
     dados = sorted(dados, key=lambda c: (c[1] or "").lower())
 
@@ -1935,7 +1939,28 @@ def clientes():
             or busca in (c[13] or "").lower()  # placa
         ]
 
-    return render_template("clientes.html", clientes=dados, busca=busca)
+    # 🔷 TOTAL DE REGISTROS
+    total_registros = len(dados)
+
+    # 🔷 TOTAL DE PÁGINAS
+    total_paginas = (
+        total_registros // por_pagina
+        + (1 if total_registros % por_pagina else 0)
+    )
+
+    # 🔷 FATIA DA PÁGINA ATUAL
+    inicio = (pagina - 1) * por_pagina
+    fim = inicio + por_pagina
+
+    dados = dados[inicio:fim]
+    
+    return render_template(
+        "clientes.html",
+        clientes=dados,
+        busca=busca,
+        pagina=pagina,
+        total_paginas=total_paginas
+    )
 
 from flask import jsonify
 
